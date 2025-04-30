@@ -1,29 +1,176 @@
 \section{Introduction}
 \label{sec:intro}
+% Significance of the research and prior work.
 
-Taciti~\cite{76-toit-dh} habitasse elementum bibendum placerat adipiscing orci
-torquent. Aliquet nam ridiculus sodales arcu natoque imperdiet. Malesuada
-senectus nam; eu urna consequat commodo aenean tempus. Vehicula venenatis
-penatibus vulputate, sollicitudin morbi orci quisque. Convallis aliquam
-phasellus dolor lectus vestibulum tempus ante? Dis scelerisque tincidunt
-elementum nulla semper tincidunt viverra mollis. Adipiscing morbi cursus amet
-taciti feugiat facilisi accumsan leo. Habitant erat fringilla porttitor ligula
-curabitur maecenas condimentum. Scelerisque semper ullamcorper ultrices quisque
-sem diam nullam consequat nullam.  Egestas pretium luctus posuere iaculis magna
-enim metus vulputate.
+% BIG PICTURE
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%---
+% - Define FaaS
+% - Define Function Chain
+% - Define characteristics (chain length, expected latency
+%---
+Function-as-a-Service (FaaS) platforms like AWS Lambda are popular choices for
+building event-driven, cloud-based solutions because of their autoscaling
+capabilities and pay-per-use billing.
+%
+%Functions are ephemeral, stateless units of code that are triggered by specific
+%events, with the platform automatically scaling their execution up or down
+%based on demand. 
+%
+The stateless nature and loose coupling of functions allow organizations to
+create complex workflows simply by linking multiple functions in a sequence, or
+\emph{function chain}.
+%
+A recent study found that 46\% of real-world FaaS applications use function
+chains, with some chains containing up to 10
+functions~\cite{20-atc-serverless_in_the_wild}.
+%
+%Although functions can directly invoke each other to form chains, they more
+%commonly rely on intermediary services—such as event queues, pub/sub channels,
+%or object stores—to trigger and pass control to the next function.
+%%
+%This indirect chaining supports loose coupling and circumvents input size
+%limitations.
+%
+Despite the name, function chains may be input-dependent, allowing for branching
+and looping, and are thus more accurately graphs.
 
-Venenatis aliquam non molestie odio fames. Proin curae vestibulum hendrerit eu
-tempus fermentum. Tristique eu per magna accumsan faucibus. Ante eros elementum
-cubilia lorem accumsan curabitur. Justo cras venenatis sodales non varius
-massa! Turpis placerat morbi nunc ullamcorper fringilla. Ac parturient
-elementum ipsum fusce justo penatibus. Ultrices facilisis placerat integer
-varius erat efficitur vel at sollicitudin?
 
-Ligula venenatis convallis augue fusce adipiscing class. Eget accumsan vehicula
-eget cursus eget augue dignissim. Pellentesque tempor vehicula est interdum
-himenaeos.  Dis elementum mattis cras egestas magnis tempor senectus
-ligula. Fringilla etiam condimentum tortor dignissim proin vestibulum. Lacinia
-eleifend conubia iaculis accumsan ridiculus aliquet. Consectetur fames gravida
-platea leo amet. Tincidunt pulvinar volutpat ex egestas ut vivamus, ligula
-fermentum. Lobortis tincidunt nisl eget torquent fames.
 
+% PROBLEM STATEMENT
+%
+% What is that you address and that keeps the big picture form being pretty?
+% How would the world be better if the problem were solved?
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%---
+% - Describe use-cases that involve multiple parties and that are security sensitive
+% - Give examples of concrete attacks
+% - Give examples of cloud provider leaks, insider threat, law enforcement
+% - Give examples of issues with constructing chains accross distrustful parties
+% - End with problem statement/thesis in bold
+%---
+There are many use cases---particularly in highly-regulated sectors like
+government, finance, and healthcare---, where function chains must process
+privacy-sensitive data, and where the chain includes functions from multiple
+organizations.
+%
+For instance, a chain to process a loan application could include: \wcircled{1}
+the bank's initial function to process the application, \wcircled{2} a
+government service's function  to verify the applicant's identity, and
+\wcircled{3} a credit bureau's function to retrieve the applicant's credit
+score.
+%
+In such a setting, each organization must trust another's function with their
+data.
+%
+% [37, 44, 50]
+Even with mutual trust among organizations, adversaries can exploit
+vulnerabilities in functions, manipulating data flows to steal sensitive data
+and conduct stealthy operations~\cite{21-sec-sandtrap}.
+%
+%For example, SandTrap~\cite{21-sec-sandtrap}
+%demonstrates how an adversary can bypass IFTT rule sandboxes on AWS Lambda
+%bypassed to exfiltrate IoT event data.
+%
+Moreover, despite seemingly trustworthy  cloud providers, customers must still
+be wary of cloud infrastructure bugs~\cite{14-socc-cloud_bugs}, insider
+threats~\cite{09-hotcloud-trusted_cloud_computing}, and data disclosures to law
+enforcement~\cite{ amazon-ring-videos-police, police-microsoft-personal-data,
+police-phone-data-icloud}.
+
+
+% CHALLENGES IN SOLVING IT
+%
+% Why have people not solved this before?  What primitivies or mechanisms would
+% one need to assemble a solution.  Can prior attempts at solutions not be
+% deployed incrementally?  Are existing tools mistmathced to the "real"
+% problem?
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%---
+% Describe three major prior solutions:
+%   - commerical tee solutions (dataproc)
+%   - academic tee solutions (clemmys)
+%   - non-tee solutions (kalim)
+%---
+Prior work in securing function chains focuses either on guaranteeing the
+chain's data confidentiality, or the integrity of function order.
+%
+For data confidentiality, previous research systems~\cite{16-osdi-ryoan,
+    19-ccsw-s_faas,
+    19-systor-clemmys,
+    19-systor-trust_more_serverless,
+    21-isca-confidential_serverless,
+    23-sec-confidential_serverless,
+    23-socc-cryonics}
+leverage hardware trusted execution environments
+(TEEs, particularly Intel SGX enclaves~\cite{
+    13-hasp-innovative_instructions,
+    16-techreport-intel_sgx_explained})
+to enable confidential function workflows.
+%
+Unfortunately, to support autoscaling, these systems rely on a trusted
+key distribution enclave to provision each function replica with the same
+keying material, creating a key escrow and single point of failure.
+%
+For function order integrity, research systems like Kalium~\cite{23-sec-kalium}
+and Valve~\cite{20-www-valve} model the function chain as a call graph, and
+apply control flow integrity techniques to ensure that runtime behavior
+conforms to the graph.
+%
+Since a function has only a local view of the application, these systems also
+must rely on a trusted, global controller to track the application-wide control
+flow.
+
+
+%
+%Commercially, major cloud providers support either application-level enclaves
+%with Intel SGX, or confidential VMs (using AMD SEV~\cite{amd-memory_encryption},
+%AMD SEV-SNP~\cite{amd-sev_snp}, or Intel TDX~\cite{intel_tdx}), including
+%confidential support for large data frameworks like Hadoop (Google's Dataproc), Apache Beam
+%(Google's Dataflow) and Databricks (Azure Confidential Databricks).
+%%
+%However, none offer a confidential solution for general cloud functions, and
+%the available solutions still depend on a trusted key manager (Google's
+%Confidential Spaces and Azure's Secure Key Release).
+
+\begin{tcolorbox}[boxsep=1pt]
+\textbf{
+    Our research will guarantee that function chains do not leak sensitive data
+    to unattended parties---including the cloud and function
+    providers---without resorting to centralized trusted services.
+}
+\end{tcolorbox}
+
+% YOUR INSIGHT
+%
+% What makes what you have written interesting?  What nugget of wisdom does the
+% rest of the paper investigate?  One of your sentences should start with "Our
+% insight is."
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Our insight is to combine non-interactive cryptographic protocols with
+TEEs to secure function chains without centralized trust.
+%
+We introduce \SystemName, the first FaaS platform to guarantee data
+confidentiality and path integrity without relying on a trusted control plane.
+%
+In \SystemName, each function replica runs in a TEE and independently generates its own keys.
+%
+Using proxy re-encryption, \SystemName enables any replica to decrypt
+messages intended for its target function, eliminating the need for a trusted
+key escrow.
+%
+For control flow integrity, Samba's runtime cryptographically signs each
+function's provenance, removing the need for a global controller.
+%
+To minimize bandwidth and validation overhead, Samba uses aggregate
+signatures~\cite{03-eurocrypt-aggregate_signatures_bilinear_maps} to compress
+the signatures of the entire chain into a single, compact signature.
+
+
+
+
+
+%A key challenge is preserving this tracking across indirect flows: although
+%functions can directly invoke each other to form chains, they more commonly
+%rely on untrusted intermediary services---event queues, pub/sub channels, and
+%object stores---to trigger and pass control to the next function.

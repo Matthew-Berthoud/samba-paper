@@ -1,29 +1,101 @@
 \section{Background \& Motivation}
 \label{sec:background}
 
-Parturient tristique pulvinar viverra pretium aliquam; dui nunc. Eros ac
-ridiculus orci sit pharetra dolor eu hendrerit. Est suscipit porta senectus
-facilisi bibendum praesent faucibus tortor. Cras vivamus bibendum augue est
-dapibus pellentesque posuere dis. Dui fermentum hac congue mollis; facilisis
-vivamus facilisis dictum. Natoque vehicula potenti molestie nam congue
-senectus. Laoreet penatibus suscipit hac sodales suscipit vehicula aptent.
-Adipiscing pellentesque luctus semper consectetur congue ultricies neque?
+\parhead{Confidential computing.}
+%
+\emph{Confidential computing} protects data in use by processing it within a
+hardware TEE, isolating it from unauthorized access or modification.
+%
+This proposal focuses on the latest generation of TEEs---specifically AMD
+SEV-SNP~\cite{amd-sev_snp}---which encrypts the memory of an entire guest VM to
+create \emph{confidential VMs}.
+%
+% (the Versioned Chip Endorsement Key, or VCEK) 
+A critical feature of AMD SEV-SNP (and all TEEs) is \emph{remote attestation}:
+the trusted hardware measures (computes a hash of) the VM workload, and a
+unique hardware key signs this initial state, producing an \emph{attestation
+report}.
+%
+Thus, AMD serves as the root of trust, eliminating the need to trust the server
+owner, while customers can retrieve the attestation report to verify that the
+correct software is running within the confidential VM\@.
+%
+To allow an attestation to bind a runtime value, the confidential VM can
+include a small amount of \emph{user data} in the signed report.
+%
+%
+%AMD also provides certificate authority servers that can issue a VCEK
+%certificate by signing the corresponding hardware key.
+
+
+\parhead{Proxy re-encryption.}
+%
+% https://www.cs.jhu.edu/~susan/600.641/scribes/lecture17.pdf
+%
+\emph{Proxy re-encryption} is a cryptographic scheme that allows an untrusted
+proxy to convert a ciphertext encrypted under Alice's public key into a
+ciphertext that Bob can decrypt with his secret key, without learning the
+underlying plaintext.
+%
+At a high-level, Alice and Bob construct a public \emph{re-encryption key}
+$RK_{\text{Alice}\rightarrow\text{Bob}}$ that
+the proxy uses to re-encrypt the ciphertext from Alice (the \emph{delegator}) to Bob
+(the \emph{delegatee}).
+%
+In 1998, Blaze, Bleumer, \& Strauss~\cite{98-eurocrypt-proxy_cryptography}
+designed the first proxy re-encryption construction based on the ElGamal
+encryption system~\cite{85-toit-elgamal}.
+%
+Shortly thereafter, Dodis and Ivan~\cite{03-ndss-proxy_cryptography_revisited}
+developed a unidirectional variant, and later Ateniese et
+al.~\cite{05-ndss-improved_proxy_reencryption} applied bilinear
+maps~\cite{01-crypto-ibe_weil_pairing} (and specifically BLS
+signatures~\cite{03-eurocrypt-aggregate_signatures_bilinear_maps}) to develop
+schemes that did not require interaction between the delegator and delegatee.
+%
+Since then, numerous works have explored features like multiple
+re-encryptions~\cite{17-tops-fast_proxy_re_encryption} and
+revocation~\cite{12-crypto-dynamic_credentials_and_delegation_for_abe}, and
+security properties like chosen-ciphertext
+resistance~\cite{07-ccs-cca_proxy_re_encryption} and
+unlinkability of ciphertexts~\cite{19-acisp-pcs_proxy_reencryption}.
 
 
 \subsection{Threat Model}
 \label{sec:threat-model}
 
-Purus natoque malesuada parturient malesuada pellentesque integer. Ac dapibus
-ad; risus mollis eleifend platea fusce facilisi. Cubilia convallis odio ante
-tempor; gravida eu nisl netus cras. Justo venenatis nascetur aliquam nec
-maecenas nisl nunc viverra sodales. Inceptos enim scelerisque eu imperdiet
-dictum eget. Habitasse laoreet phasellus dapibus metus porttitor. Aliquet
-semper commodo euismod condimentum maecenas suscipit condimentum.
+Our system has three parties: the \emph{cloud provider}, the \emph{function
+providers}, and \emph{external attackers}.
+%
+A function chain may contain functions from multiple providers.
+%
+For any given function provider, the potential adversaries
+are the other function providers in the chain, the cloud provider, and
+external attackers.
+%
+The goal of an adversary is to learn the inputs or outputs of a (peer)
+function, modify these inputs or outputs, or modify the sequence of functions
+in the chain (e.g., to insert a function that sends data to an
+adversary-controlled log).
+%
+A function provider can submit any function to the chain, including a
+malicious function that tries to leak data or subvert the cloud
+provider.
+%
+We assume that functions may contain bugs that unintentionally leak
+data or expose the function to exploitation.
+%
+We assume an adversary cannot breach the security of confidential VMs; we trust
+the system software in the VM, and consider side-channel attacks out-of-scope.
+%
+%Since the cloud provider can trivially deny service, we do not guarantee
+%availability.
 
 
 \subsection{Goals}
 \label{sec:goals}
 
+\color{red}
 Diam euismod dictum placerat vehicula mollis. Malesuada proin ultricies dapibus
 sem tincidunt suscipit nullam. Risus felis fusce quam hendrerit purus ultrices
 fusce. Finibus etiam torquent nunc egestas fringilla habitasse phasellus mattis
@@ -32,3 +104,4 @@ aliquet erat tristique, felis mollis nullam. Dapibus at cras dolor consequat
 egestas. Et nostra facilisis odio commodo hac et felis. Tempor ullamcorper
 mollis pellentesque nulla hendrerit cursus magna praesent nulla. Porta cubilia
 orci iaculis purus enim parturient.
+\color{black}
