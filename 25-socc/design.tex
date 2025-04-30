@@ -10,52 +10,9 @@
 %%    \label{fig:architecture}
 %%\end{figure}
 
-\parhead{Trusted function runtime.}
+%% \parhead{Key management.}
 %
-For \SystemName's function runtime, we will extend \emph{Project Oak},\footnote{
-\url{https://github.com/project-oak/oak}
-%\url{https://nordprojects.co/projects/oak/}
-}
-an open-source framework for processing private data within a TEE\@.
-%
-The central component of Project Oak is the \emph{Oak Functions} platform (see
-Figure~\ref{fig:oak}), which executes each function in a confidential VM with a
-custom, minimal operating system kernel designed to execute only a single
-process.
-%
-\begin{figure}
-    \centering
-    \includegraphics[page = 3, width=0.48\textwidth]{diagrams/slides.pdf}
-    %
-    \caption{Oak and DICE architecture.
-    %
-    In the DICE model, each software layer loads and measures the next layer,
-    generates an ephemeral key pair for the layer, and issues the layer a
-    certificate endorsing its measurement and public key.
-    %
-    Oak uses AMD's trusted hardware as the root of trust.
-    %
-    % In total, Oak's implementation of DICE results in a certificate chain, rooted
-    %in the AMD trusted hardware, that attests the entire workload.
-    }
-    \label{fig:oak}
-\end{figure}
-%
-The function runs in a secure WebAssembly (Wasm) runtime sandbox, preventing
-the process from leaking any sensitive client data.
-%
-Additionally, Oak uses the DICE~\cite{24-misc-dice} architecture for measured
-boot to extend AMD SEV-SNP's attestation from the initial state of the VM
-to the entire VM workload.
-%
-We will modify the Oak kernel with cryptographic support to transparently
-manage keys and encrypt I/O\@.
-
-
-
-\parhead{Key management.}
-%
-In previous research, each function replica would attest to a trusted key
+In previous research, each function replica in a FaaS system would attest to a trusted key
 server to obtain a shared key pair.
 %
 To eliminate this central, trusted dependency, \SystemName
@@ -72,9 +29,12 @@ uses decentralized key management with proxy re-encryption.
 %
 As Figure~\ref{fig:arch} illustrates, the first instance of a function
 generates a key pair and registers the public key in an untrusted registry,
-along with an attestation report that proves the key was generated in an Oak
-TEE\@.
+along with an attestation report.
 %
+In \SystemName, that report will likely prove that the key was generated in an Oak
+Trusted Execution Environment\@.
+%
+We'll discuss this future work in more detail in Section~\ref{sec:future}.
 %As shown in Figure~\ref{fig:arch},
 %the first instance of a function generates a key pair and registers the
 %public key in an untrusted registry with an attestation report from an Oak
@@ -90,6 +50,67 @@ prompting the original instance to generate a re-encryption key.
 As a result, each function can encrypt messages for the original downstream
 instance's public key, remaining independent of that function's scaling.
 
+
+
+%% \textbf{Compilers project proposal}
+
+In this section we'll overview the design of the \SystemName system.
+%%%
+%%First, in section \ref{sec:samba}, I'll describe the proposed \SystemName design.
+%%%
+%%Then, in section \ref{sec:optimization_design} we'll discuss proposed compiler optimization and general optimizations for the \SystemName system. Finally, in section \ref{sec:eval} we'll cover the means by which I'll evaluate the relative success (or failure) of those performance improvements.
+%%%
+\SystemName applies proxy re-encryption to Function as a Service (FaaS) applications.
+%
+We implement it as an extension to Knative Serving\footnote{url{https://knative.dev/docs/serving/}}, an open-source cloud technology that can function as a FaaS orchestrator.
+%
+Knative Serving is a Kubernetes-based platform that enables developers to deploy and manage serverless applications.
+%
+Using their existing Knative Serving infrastructure, we can add \SystemName's proxy re-encryption capabilities to functions deployed on Knative.
+%
+Knative functions have \texttt{QueueProxy} sidecar containers that can be used to perform instance-level re-encryption operations on the function's behalf.
+%
+We also implement \SystemName-Lite, a simplified proof-of-concept for the proxy re-encryption scheme applied to FaaS.
+%
+To understand how \SystemName and \SystemName-Lite work, I'll describe a simple example where we have a function with a maximum of two replicas, Alice and Bob.
+This example describes the operation of the \SystemName-Lite system.
+For the sake of consistency we'll call the FaaS provider/orchestrator Proxy.
+For simplicity in this explanation, we'll assume not only Proxy, but also Alice and Bob are always running, which defeats the entire purpose of FaaS, but doesn't effect our analysis of the cryptographic operations.
+Note that when bringing up Bob, Proxy would request that Alice generate a re-encryption key from her to Bob, so we'll assume that is already made.
+We assume that Alice's public key will be known by any prospective clients wishing to run the function, since she is the initially available replica, before the function scales and adds Bob.
+Requests destined for the function are encrypted under Alice's public key, and sent by some Sender to Proxy.
+Proxy then load balances, determining if Alice can currently accept a request.
+If so, Proxy forwards the request to Alice, who can decrypt it with her private key, and send her response to the Proxy, who forwards it to Sender.
+If not, Proxy uses the re-encryption key we mentioned Alice having generated in order to re-encrypt the request to Bob.
+It then forwards the request to Bob, who decrypts, and responds to  Proxy, who forwards that response to Sender.
+
+%% \subsection{Optimization}
+%% \label{sec:optimization_design}
+%% 
+%% The performance impact of adding proxy re-encryption to an otherwise un-encrypted program is no secret.
+%% The AFGH authors aren't shy about this, but do mention that if they had gone to greater lengths to select proper compiler optimizations, these effects could be reduced.
+%% \cite{afgh}
+%% That is the motivation for this proposal.
+%% With our proxy re-encryption implementation written in Go, we have access to a compiler with many optimizations already built in, and a rich ecosystem of open source extensions.
+%% The primary contribution of this project will be, through theoretical research, as well as trial and error, determining what set of optimizations for the Go compiler produce the best results for proxy re-encryption in the Samba system.
+%% 
+%% Beyond the possible compiler optimizations, we will make sure to do another simple optimization at the code level.
+%% If we were to write the least amount of code possible to implement proxy re-encryption within Samba, that would probably involve the initial replica generating re-encryption keys to re-encrypt messages to itself, so we wouldn't have to code anything for that "base case."
+%% The optimization here would be to simply code specifically for the case where the request is load balanced to the initial replica, and skip the re-encryption key generation, and re-encryption steps.
+%% This will limit the cryptographic operations performed to those that are absolutely necessary.
+%% 
+%% \subsection{Evaluation}
+%% \label{sec:eval}
+%% 
+%% Knative and the Samba extension are both written in Go.
+%% Among the many benefits of the Go Programming Language is its standard library, which contains many idiomatically written packages for tasks developers need to perform frequently.
+%% In our case, we'll make extensive use of the "testing" package, and specifically its benchmarking support.
+%% This will be most helpful for testing the effectiveness of our optimizations on the \texttt{alice}, \texttt{bob}, and \texttt{proxy} binaries within the proof-of-concept \SystemName-Lite portion of the project.
+%% 
+%% Additionally, Knative itself offers a number of ways to benchmark components in its distributed system.
+%% \cite{knative_serving}
+%% We will use these tests to compare the performance of Knative's Autoscaling Sample App without the Samba extension vs. with the Samba extension.
+%% \cite{autoscale_sample_app_go}
 
 
 %%
@@ -124,44 +145,6 @@ instance's public key, remaining independent of that function's scaling.
 %public key, remaining independent of the function's scaling.
 
 
-\parhead{Control flow integrity.}
-%
-Beyond encrypting function I/O, \SystemName must ensure the integrity
-of the sequence of functions.
-%
-%Guaranteeing this property is challenging, as a function chain can span multiple
-%organizations, and an organization may be unaware of its functions position in
-%the chain.
-%
-\SystemName approaches this challenge in two ways.
-%
-First, we extend the Oak runtime to include a cryptographically binding record
-of provenance: each function extends a path signature by signing over its
-current link.
-%
-The last function then posts this provenance record to an untrusted log that
-any organization can monitor and audit.
-%
-Additionally, if an organization knows a flow graph for the function chain (or
-some subset thereof),  Oak will locally verify that the received event and the
-function's subsequent output conform to the graph.
-
-
-\parhead{Optimization.}
-%
-\SystemName relies on certificate chains both for attestation and provenance.
-%
-To reduce bandwidth and storage costs, \SystemName can compress the chains
-using an aggregate signature
-scheme~\cite{03-eurocrypt-aggregate_signatures_bilinear_maps}.
-%
-In an \emph{aggregate signature},
-each private key $sk_i$ signs a \emph{distinct} message $m_i$ to form signature
-$\sigma_i$, and any party can compress the $\sigma_i$ into a single,
-small aggregate signature $\sigma^*$.  
-%
-The aggregate signature convinces a verifier that each signer signed their
-respective message.
 
 %%\begin{table}[t!]
 %%    \small
@@ -178,89 +161,40 @@ respective message.
 %%    \end{tabular*}
 %%\end{table}
 
-\textbf{adwait}
-
-There are a number of open source projects for various parts of the project that we will be extending.
-
-\subsection{Function Runtime}
-We performed all development and testing on an AMD-SEV SNP machine, to later take advantage of Trusted Execution Environment features.
-We have not yet enabled these features in the course of development.
-We ported an open source proxy re-encryption library from C to Rust in order to be callable from within the later boot stages of the Oak Restricted Kernel.
-The kernel extension itself is still a work in progress.
-There is a lot to sort through to determine where exactly in the boot stages would be the best place to perform re-encryption and decryption
-to be able to work with the data.
-
-\subsection{FaaS Orchestration}
-Function as a Service paradigms are implemented differently by different platforms.
-Amazon Lambda, Google Cloud Functions, and Azure Functions are all well-known and closed source, all with (presumably) completely different architectures.
-
-The open source FaaS landscape is no more homogenous than its corporate counterpart.
-Additionally, some are partially open source, with certain paywalled features, and others use deprecated dependencies which makes setup a non-trivial problem.
-This was a major hurdle for development, and battling the idiosyncracies of these FaaS frameworks accounts for much of the progress (or lack thereof) made on this project.
-
-\subsubsection{Firecracker}
-Firecracker is partially open source, and disbatches requests to networks of MicroVMs.
-Since it doesn't support custom kernels out of the box, and a lot of the code is written with MicroVM specific APIs, extending this project to accomodate the Oak Restricted Kernel for SAMBA would amount to basically a full rewrite.
-
-\subsubsection{OpenFaaS}
-OpenFaaS, perhaps misleadingly, is not fully open source.
-Components such as the load balancer that creates function replicas are only availible as binaries, and therefore the modifications that we need to make are not possible with OpenFaaS.
-
-\subsubsection{OpenWhisk}
-OpenWhisk is fully open source, and is used in a variety of recent papers. That said, the repository seems barely maintained in 2024, and older versions of Java (Java 8), Docker, and Ubuntu may be required to cohesiveliy run it.
-Investigations to that effect are another significant contributor to delay in this project.
-We anticipate continuing efforts, potentially of a known working fork from a researcher who has used OpenWhisk successfully in recent years.
-Also, I will re-double my efforts following and modifying few-yearold open source documentation to get development up and running, by emulating all dependencies as closely as possible.
-
-\subsubsection{Open Function}
-Open Function is another open source function orchestrator, which we will look into as an implementation option.
-
-\textbf{Compilers project proposal}
-
-In this section we'll overview the proposed design of the different research components of this project. First, in section \ref{sec:samba}, I'll describe the Samba project implementation. Then, in section \ref{sec:optimization_design} we'll discuss proposed compiler optimization and general optimizations for the Samba system. Finally, in section \ref{sec:eval} we'll cover the means by which I'll evaluate the relative success (or failure) of those performance improvements.
-
-\subsection{Samba Proxy Re-encryption Protocol}
-\label{sec:samba}
-
-Samba applies proxy re-encryption to Function as a Service (FaaS) applications.
-We implement it as an extension to Knative Serving, an open-source cloud technology that can function as a FaaS orchestrator.
-We also implement SambaLite, a simplified proof-of-concept for the proxy re-encryption scheme applied to FaaS.
-
-To understand how Samba and SambaLite work, I'll describe a simple example where we have a function with a maximum of two replicas, Alice and Bob.
-For the sake of consistency we'll call the FaaS provider/orchestrator Proxy.
-For simplicity in this explanation, we'll assume not only Proxy, but also Alice and Bob are always running, which defeats the entire purpose of FaaS, but doesn't effect our analysis of the cryptographic operations.
-Note that when bringing up Bob, Proxy would request that Alice generate a re-encryption key from her to Bob, so we'll assume that is already made.
-We assume that Alice's public key will be known by any prospective clients wishing to run the function, since she is the initially available replica, before the function scales and adds Bob.
-Requests destined for the function are encrypted under Alice's public key, and sent by some Sender to Proxy.
-Proxy then load balances, determining if Alice can currently accept a request.
-If so, Proxy forwards the request to Alice, who can decrypt it with her private key, and send her response to the Proxy, who forwards it to Sender.
-If not, Proxy uses the re-encryption key we mentioned Alice having generated in order to re-encrypt the request to Bob.
-It then forwards the request to Bob, who decrypts, and responds to  Proxy, who forwards that response to Sender.
-
-\subsection{Optimization}
-\label{sec:optimization_design}
-
-The performance impact of adding proxy re-encryption to an otherwise un-encrypted program is no secret.
-The AFGH authors aren't shy about this, but do mention that if they had gone to greater lengths to select proper compiler optimizations, these effects could be reduced.
-\cite{afgh}
-That is the motivation for this proposal.
-With our proxy re-encryption implementation written in Go, we have access to a compiler with many optimizations already built in, and a rich ecosystem of open source extensions.
-The primary contribution of this project will be, through theoretical research, as well as trial and error, determining what set of optimizations for the Go compiler produce the best results for proxy re-encryption in the Samba system.
-
-Beyond the possible compiler optimizations, we will make sure to do another simple optimization at the code level.
-If we were to write the least amount of code possible to implement proxy re-encryption within Samba, that would probably involve the initial replica generating re-encryption keys to re-encrypt messages to itself, so we wouldn't have to code anything for that "base case."
-The optimization here would be to simply code specifically for the case where the request is load balanced to the initial replica, and skip the re-encryption key generation, and re-encryption steps.
-This will limit the cryptographic operations performed to those that are absolutely necessary.
-
-\subsection{Evaluation}
-\label{sec:eval}
-
-Knative and the Samba extension are both written in Go.
-Among the many benefits of the Go Programming Language is its standard library, which contains many idiomatically written packages for tasks developers need to perform frequently.
-In our case, we'll make extensive use of the "testing" package, and specifically its benchmarking support.
-This will be most helpful for testing the effectiveness of our optimizations on the \texttt{alice}, \texttt{bob}, and \texttt{proxy} binaries within the proof-of-concept SambaLite portion of the project.
-
-Additionally, Knative itself offers a number of ways to benchmark components in its distributed system.
-\cite{knative_serving}
-We will use these tests to compare the performance of Knative's Autoscaling Sample App without the Samba extension vs. with the Samba extension.
-\cite{autoscale_sample_app_go}
+%% \textbf{adwait}
+%% 
+%% There are a number of open source projects for various parts of the project that we will be extending.
+%% 
+%% \subsection{Function Runtime}
+%% We performed all development and testing on an AMD-SEV SNP machine, to later take advantage of Trusted Execution Environment features.
+%% We have not yet enabled these features in the course of development.
+%% We ported an open source proxy re-encryption library from C to Rust in order to be callable from within the later boot stages of the Oak Restricted Kernel.
+%% The kernel extension itself is still a work in progress.
+%% There is a lot to sort through to determine where exactly in the boot stages would be the best place to perform re-encryption and decryption
+%% to be able to work with the data.
+%% 
+%% \subsection{FaaS Orchestration}
+%% Function as a Service paradigms are implemented differently by different platforms.
+%% Amazon Lambda, Google Cloud Functions, and Azure Functions are all well-known and closed source, all with (presumably) completely different architectures.
+%% 
+%% The open source FaaS landscape is no more homogenous than its corporate counterpart.
+%% Additionally, some are partially open source, with certain paywalled features, and others use deprecated dependencies which makes setup a non-trivial problem.
+%% This was a major hurdle for development, and battling the idiosyncracies of these FaaS frameworks accounts for much of the progress (or lack thereof) made on this project.
+%% 
+%% \subsubsection{Firecracker}
+%% Firecracker is partially open source, and disbatches requests to networks of MicroVMs.
+%% Since it doesn't support custom kernels out of the box, and a lot of the code is written with MicroVM specific APIs, extending this project to accomodate the Oak Restricted Kernel for SAMBA would amount to basically a full rewrite.
+%% 
+%% \subsubsection{OpenFaaS}
+%% OpenFaaS, perhaps misleadingly, is not fully open source.
+%% Components such as the load balancer that creates function replicas are only availible as binaries, and therefore the modifications that we need to make are not possible with OpenFaaS.
+%% 
+%% \subsubsection{OpenWhisk}
+%% OpenWhisk is fully open source, and is used in a variety of recent papers. That said, the repository seems barely maintained in 2024, and older versions of Java (Java 8), Docker, and Ubuntu may be required to cohesiveliy run it.
+%% Investigations to that effect are another significant contributor to delay in this project.
+%% We anticipate continuing efforts, potentially of a known working fork from a researcher who has used OpenWhisk successfully in recent years.
+%% Also, I will re-double my efforts following and modifying few-yearold open source documentation to get development up and running, by emulating all dependencies as closely as possible.
+%% 
+%% \subsubsection{Open Function}
+%% Open Function is another open source function orchestrator, which we will look into as an implementation option.
+%% 
