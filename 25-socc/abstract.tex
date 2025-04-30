@@ -13,3 +13,30 @@ proxy re-encryption, allowing any function replica to decrypt messages for its
 target function.
 
 
+\textbf{adwait}
+
+% Abstract here \ldots Remember to talk about the area, problem,
+% solution, methodology, results, and take-away. In general, an abstract
+% should only be one paragraph and on the order of 200 words.
+% area
+% problem
+% solution
+% methodology
+% results
+% take-away
+
+Existing security solutions for Function as a Service (FaaS) cloud systems have limits.
+In order to provide confidentiality while maintaining function scaling behavior, they rely on a centralized key escrow.
+In order to provide integrity within function chains, they rely on a centralized log.
+These solutions necessarilty ascribe trust to parties other than the function user themselves, such as the cloud provider.
+We developed SAMBA, a FaaS system that ensures data confidentiality and function integrity within a function chain, even with an untrusted cloud
+provider, distrusting function providers, or external attackers.
+SAMBA leverages AMD SEV-SNP trusted execution environments
+to create secure function sandboxes, built with Google's Project Oak Restricted Kernel.
+SAMBA extends Oak Restricted Kernel to use aggregate signatures for control flow integrity, without a trusted external log.
+We also extend the Oak Restricted Kernel with a proxy re-encryption implementation to add confidentiality to FaaS systems while still enabling scaling and replication.
+This allows function replicas to decrypt messages that were encrypted to its target function, without a trusted key escrow.
+By removing external security dependencies, SAMBA reduces the size of the Trusted Computing Base (TCB) in FaaS systems to just include the user's code itself, and the hardware of the cloud machine.
+SAMBA is one of many advances in cloud security that will make it possible to store sensitive data, and run trusted workloads in an untrusted cloud.
+
+

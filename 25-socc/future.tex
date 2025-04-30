@@ -1,0 +1,17 @@
+\section{Future Work}
+\label{sec:future}
+
+\textbf{adwait "discussion"}
+% Discussion (discuss some of the important simplifying assumptions, and
+% suggest possibilities for future work)
+
+Notably, to get any benefit from SAMBA, users will have to use one of the three open source FaaS orchestrators (whichever we decide on), and run only Oak Restricted Kernel VMs.
+It's doubtful that this will become the standard for FaaS workloads, since most in-use FaaS systems, such as AWS Lambda, use proprietary software.
+SAMBA's practical in-market use cases are therefore likely next to none, but it serves as a good proof of concept for how to add these security features to FaaS systems.
+
+As noted in the threat model, side channel attacks are out of scope for this project.
+This assumption simplifies things greatly, since side-channel attacks are definitely feasible in the modern cloud. \cite{zhao_everywhere_2024} \cite{zhao_last-level_2024}
+I acknowledge that it's a bit fantastical to assume that the cloud provider could be malicious, but woudlnt' think to perform a side-channel attack on our otherwise largely protected system.
+Defenses against side-channel attacks in the cloud are another active research area.
+It is unfortunate that strengthening overall security and hardeing against side-channel attacks seem to both leave the other vulnerable.
+Uniting solutions for these two issues without significant performance impact is an interesting research area worthy of pursuit.

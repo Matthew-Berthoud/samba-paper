@@ -12,6 +12,7 @@
 \usepackage{color}
 \usepackage{graphicx}
 \usepackage[labelformat=simple]{subcaption}
+%%\usepackage{wrapfig}
 \usepackage{xspace}
 \usepackage{multirow}
 \usepackage{makecell} % Not sure if we need this
@@ -46,6 +47,14 @@
 \newcommand{\parhead}[1]{\medskip \noindent \textbf{#1}\hskip .1in}
 
 \newcommand{\SystemName}{\textsc{Samba}\xspace}
+
+% Simple macro to help with research questions
+\newcounter{rqcounter}
+\setcounter{rqcounter}{0}
+% Usage: \newrq{label}{question}
+\newcommand{\newrq}[2]{\noindent\refstepcounter{rqcounter}\textbf{RQ\arabic{rqcounter}:} {\em #2}\label{#1}}
+% Usage: \rqref{label}
+\newcommand{\rqref}[1]{\textbf{RQ\ref{#1}}}
 
 
 % }}}
