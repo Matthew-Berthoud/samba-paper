@@ -216,3 +216,75 @@ Our Trusted Computing Base (TCB) includes the AMD SEV-SNP hardware, and the Oak 
 We put no trust in the cloud provider, other functions in the chain, or in any centralized keystore or log.
 We do assume side-channel attacks are out of scope, but preventing these while maintaining SAMBA's guarantes could be an interesting area of future research, discussed in Section~\ref{sec:discussion}.
 
+
+\textbf{compilers class proposal}
+
+This section details some necessary background on proxy re-encryption, and compiler optimizations for cryptographic operations.
+
+\subsection{Proxy Re-encryption}
+\label{sec:pre}
+The basic idea of proxy re-encryption can be thought of with a simple example.
+Say an employee Alice at a company is going on vacation, and wants her assistant Proxy (a normal human name) to be able to forward encrypted emails sent to her to her co-worker Bob while she's out of the office.
+In the ordinary case, when Alice is not on vacation, messages will be encrypted to her using her public key, and she can decrypt them using her private key.
+When Alice is on vacation, she wants Bob to be able to open the emails without giving him or Proxy access to her private key, and without Proxy being able to open the message at all.
+At a high level, this can be done by Proxy "re-encrypting" the message, such that it transforms from a message which Alice's private key can decrypt, to a message that Proxy's private key can decrypt.
+The trivial implementation of this is for Alice to share her private key with Proxy, so he can decrypt the message, and re-encrypt it under Bob's public key.
+This implementation clearly fails our constraints, since Proxy both gains access to Alice's private key, and can read the message.
+The proxy re-encryption implementation that meets our constraints, is one by Ateniese, Fu, Green, and Hohenberger. 
+\cite{afgh}sensible
+We'll refer to that implementation as AFGH; we built our Go package based on this implementation.
+\cite{noauthor_etclabpre_nodate}
+
+AFGH is an improvement on a few earlier proxy re-encryption models.
+Mambo and Okamoto first introduced decryption ability delegation as a way of increasing efficiency over the alternatives at the time.
+\cite{mambo_okamoto}
+Alternatives at the time were "decrypt-and-then-encrypt" approaches, as described by the AFGH authors.
+\cite{afgh}
+These would fail our conditions, since they'd allow Proxy to decrypt and read the plaintext, in our example, and Mambo and Okamoto's efficiency improvements wouldn't increase the security guarantees of that. 
+
+Another variation of proxy re-encryption came from Blaze, Bleumer, and Strauss (BBS), and was called "atomic proxy cryptography".
+\cite{bbs}
+\cite{afgh}
+With atomic proxy cryptography, a semi-trusted proxy (Proxy, in our example) can re-encrypt messages (from being readable by Alice to being readable by Bob). 
+There are two main limitations that make the proxy only "semi-trusted".
+First, it is bidirectional, meaning Proxy can both re-encrypt messages encrypted under Alice's public key into messages that Bob can decrypt, and vice-versa.
+In the Samba case, this is an unnecessary feature, and potentially a vulnerability.
+As we'll discuss in section \ref{sec:samba}, messages will always be encrypted to Alice, the initial replica of a given FaaS function, re-encrypted by Proxy, the FaaS provider, and sent to Bob, one of potentially many replicas of Alice.
+Second, the proxy in BBS can create the tools needed to re-encrypt between Alice and Bob without consent from either Alice or Bob.
+An eventual goal of Samba is to exclude the cloud provider from the trust model, by relying on hardware-based trusted execution environments, so we can't allow the function orchestrator the ability do do such things.
+Despite these limitations, BBS provides a solid foundation for removing some trust from the proxy, which AFGH builds upon.
+\cite{afgh}
+\cite{bbs}
+
+Dodis and Ivan (DI) solve both of BBS's drawbacks with their proxy re-encryption implementation, but introduce new drawbacks as well.
+\cite{afgh}
+\cite{ivan_dodis}
+DI works by Alice splitting her private key and giving a portion to both Proxy and Bob.
+This means that messages aren't re-encrypted per se, but that Proxy partially decrypts the message, and Bob can finish the job.
+One obvious drawback is that if Proxy and Bob collude, Proxy can decrypt and read the messages.
+Also, this requires storing extra key material for everyone whose messages can be proxy re-encrypted to you, which would be a problem at scale, and run into the key distribution problem.
+
+There have been other proxy re-encryption methods, with various strengths and drawbacks, but AFGH is mainly a fusion of BBS and DI.
+\cite{afgh}
+\cite{lidong_zhou_distributed_2005}
+\cite{markus}
+I'll highlight some of the guarantees of AFGH that are most important to Samba's operation.
+AFGH guarantees uni-directionality, or that Proxy delegating a message from Alice to Bob doesn't allow the same to happen from Bob to Alice.
+It also guarantees "proxy invisibility", meaning that Bob has no idea if he is the original function or a replica, which is good since the function code itself will be identical.
+AFGH, as well as BBS and DI, as a matter of fact, guarantees that nodes can periodically switch out their public-private key pairs such that previously generated re-encryption key material will no longer work, but new material can still be generated.
+
+One feature of AFGH that could be seen as a downside in our implementation is "original access," meaning that Alice can decrypt ciphertexts that were originally meant for her, and now re-encrypted to Bob.
+In Samba, all functions are replicas equal to the best of our ability, so ideally a message in any encryption state would only be decryptable by one replica.
+AFGH doesn't allow for this, but it's more of a loose end than a serious security flaw for Samba, since each message will only ever be sent from the FaaS provider to exactly one function replica. 
+More on this in \ref{sec:samba}.
+
+Also, (1) encrypting a message to Alice, and (2) encrypting a message to Alice that Proxy will be able to re-encrypt, require slightly different algorithms. 
+This is important to note in implementation.
+
+
+\subsection{Compiler Optimizations for Cryptography}
+\label{sec:optimization_background}
+
+Cryptographic operations are some of the most expensive operations in modern computing, in both runtime and resource utilization.
+Performance should always be a significant consideration when extending a preexisting system with a cryptographic scheme to enhance security.
+If performance isn't considered, users and companies in the real world aren't likely to adopt the change, no matter how secure. Certain scheme-specific as well as general compiler optimizations can significantly reduce the overhead in cryptosystems.

@@ -1,0 +1,121 @@
+
+@article{afgh,
+	title = {Improved proxy re-encryption schemes with applications to secure distributed storage},
+	volume = {9},
+	issn = {1094-9224, 1557-7406},
+	url = {https://dl.acm.org/doi/10.1145/1127345.1127346},
+	doi = {10.1145/1127345.1127346},
+	abstract = {In 1998, Blaze, Bleumer, and Strauss (BBS) proposed an application called atomic proxy re-encryption, in which a semi-trusted proxy converts a ciphertext for Alice into a ciphertext for Bob without seeing the underlying plaintext. We predict that fast and secure re-encryption will become increasingly popular as a method for managing encrypted ﬁle systems. Although efﬁciently computable, the wide-spread adoption of BBS re-encryption has been hindered by considerable security risks. Following recent work of Dodis and Ivan, we present new re-encryption schemes that realize a stronger notion of security, and we demonstrate the usefulness of proxy re-encryption as a method of adding access control to a secure ﬁle system. Performance measurements of our experimental ﬁle system demonstrate that proxy re-encryption can work effectively in practice.},
+	language = {en},
+	number = {1},
+	urldate = {2025-04-09},
+	journal = {ACM Transactions on Information and System Security},
+	author = {Ateniese, Giuseppe and Fu, Kevin and Green, Matthew and Hohenberger, Susan},
+	month = feb,
+	year = {2006},
+	pages = {1--30},
+	file = {PDF:/Users/mwberthoud/Zotero/storage/MVZSJMEE/Ateniese et al. - 2006 - Improved proxy re-encryption schemes with applications to secure distributed storage.pdf:application/pdf},
+}
+
+@misc{noauthor_etclabpre_nodate,
+    author = {etclab},
+	title = {etclab/pre: {Go} package for proxy re-encryption.},
+	shorttitle = {etclab/pre},
+	url = {https://github.com/etclab/pre},
+	language = {en},
+	urldate = {2025-04-09},
+}
+
+@ARTICLE{mambo_okamoto,
+  author={Masahiro MAMBO, Eiji OKAMOTO, },
+  journal={IEICE TRANSACTIONS on Fundamentals}, 
+  title={Proxy Cryptosystems: Delegation of the Power to Decrypt Ciphertexts}, 
+  year={1997},
+  volume={E80-A},
+  number={1},
+  pages={54-63},
+  abstract={In this paper a new type of public-key cryptosystem, proxy cryptosystem, is studied.  The proxy cryptosystem allows an original decryptor to transform its ciphertext to a ciphertext for a designated decryptor, proxy decryptor.  Once the ciphertext transformation is executed, the proxy decryptor can compute a plaintext in place of the original decryptor.  Such a cryptosystem is very useful when an entity has to deal with large amount of decrypting operation.  The entity can actually speed-up the decrypting operation by authorizing multiple proxy decyptors.  Concrete proxy cryptosystems are constructed for the ElGamal cryptosystem and the RSA cryptosystem.  A straightforward construction of the proxy cryptosystem is given as follows.  The original decryptor decrypts its ciphertext and re-encrypts an obtained plaintext under a designated proxy decryptor's public key.  Then the designated proxy decryptor can read the plaintext.  Our constructions are more efficient than such consecutive execution of decryption and re-encryption.  Especially, the computational work done by the original decryptor is reduced in the proxy cryptosystems.},
+  keywords={},
+  doi={},
+  ISSN={},
+  month={January},}
+
+@inproceedings{bbs,
+author = {Blaze, Matt and Bleumer, Gerrit and Strauss, Martin},
+year = {1998},
+month = {05},
+pages = {127-144},
+title = {Divertible Protocols and Atomic Proxy Cryptography},
+volume = {1403},
+isbn = {978-3-540-64518-4},
+journal = {Divertible Protocols and Atomic Proxy Cryptography},
+doi = {10.1007/BFb0054122}
+}
+
+
+@inproceedings{ivan_dodis,
+  title={Proxy Cryptography Revisited.},
+  author={Ivan, Anca-Andreea and Dodis, Yevgeniy},
+  booktitle={NDSS},
+  year={2003},
+  organization={Citeseer},
+	language = {en},
+	abstract = {In this work we revisit and formally study the notion of proxy cryptography. Intuitively, various proxy functions allow two cooperating parties F (the “FBI”) and P (the “proxy”) to duplicate the functionality available to the third party U (the “user”), without being able to perform this functionality on their own (without cooperation). The concept is closely related to the notion of threshold cryptography, except we deal with only two parties P and F , and place very strict restrictions on the way the operations are performed (which is done for the sake of efﬁciency, usability and scalability). For example, for decryption (resp. signature) P (F ) sends a single message to F (P ), after which the latter can decrypt (sign) the message. Our formal modeling of proxy cryptography signiﬁcantly generalizes, simpliﬁes and simultaneously clariﬁes the model of “atomic proxy” suggested by Blaze and Strauss [4]. In particular, we deﬁne bidirectional and unidirectional variants of our model1, and show extremely simple generic solutions for proxy signature and encryption in these models. We also give more efﬁcient solutions for several speciﬁc schemes. We conclude that proxy cryptography is a relatively simple concept to satisfy when looked from the correct and formal standpoint.},
+	file = {PDF:/Users/mwberthoud/Zotero/storage/FTNBYR2M/Ivan and Dodis - Proxy Cryptography Revisited.pdf:application/pdf},
+}
+
+@misc{etclabsamba,
+	title = {etclab/samba: {Enabling} {Confidential} and {Collaborative} {Cloud} {Functions}},
+    author = {etclab},
+	shorttitle = {etclab/samba},
+	url = {https://github.com/etclab/samba},
+	language = {en},
+	urldate = {2025-04-09},
+	file = {Snapshot:/Users/mwberthoud/Zotero/storage/LDX5RMZW/samba.html:text/html},
+}
+
+@inproceedings{markus,
+author = {Jakobsson, Markus},
+title = {On Quorum Controlled Asymmetric Proxy Re-encryption},
+year = {1999},
+isbn = {3540656448},
+publisher = {Springer-Verlag},
+address = {Berlin, Heidelberg},
+abstract = {We present a scheme for quorum controlled asymmetric proxy re-encryption, with uses ranging from efficient key distribution for pay-tv to email applications. We prove that the scheme, which is based on El-Gamal encryption, leaks no information as long as there is no dishonest quorum of proxy servers. Of potential independent interest is a method providing publicly verifiable translation certificates, proving that the input and output encryptions correspond to the same plaintext message, without leaking any information about the plaintext to either the verifier or a subset of the servers of the prover. The size of the certificate is small, and independent of the number of prover servers.},
+booktitle = {Proceedings of the Second International Workshop on Practice and Theory in Public Key Cryptography},
+pages = {112–121},
+numpages = {10},
+series = {PKC '99}
+}
+
+@inproceedings{lidong_zhou_distributed_2005,
+	address = {Columbus, OH, USA},
+	title = {Distributed {Blinding} for {Distributed} {ElGamal} {Re}-{Encryption}},
+	isbn = {978-0-7695-2331-6},
+	url = {http://ieeexplore.ieee.org/document/1437141/},
+	doi = {10.1109/ICDCS.2005.24},
+	abstract = {A protocol is given to take an ElGamal ciphertext encrypted under the key of one distributed service and produce the corresponding ciphertext encrypted under the key of another distributed service, but without the plaintext ever becoming available. Each distributed service comprises a set of servers and employs threshold cryptography to maintain its service private key. Unlike prior work, the protocol requires no assumptions about execution speeds or message delivery delays. The protocol also imposes fewer constraints on where and when various steps are performed, which can bring improvements in end-to-end performance for some applications (e.g., a trusted publish/subscribe infrastructure.) Two new building blocks employed—a distributed blinding protocol and veriﬁable dual encryption proofs—could have uses beyond re-encryption protocols.},
+	language = {en},
+	urldate = {2025-04-09},
+	booktitle = {25th {IEEE} {International} {Conference} on {Distributed} {Computing} {Systems} ({ICDCS}'05)},
+	publisher = {IEEE},
+	author = {{Lidong Zhou} and Marsh, M.A. and Schneider, F.B. and Redz, A.},
+	year = {2005},
+	pages = {824--824},
+	file = {PDF:/Users/mwberthoud/Zotero/storage/ACVSCPZ6/Lidong Zhou et al. - 2005 - Distributed Blinding for Distributed ElGamal Re-Encryption.pdf:application/pdf},
+}
+
+@misc{knative_serving,
+    author = {Knative},
+	title = {Knative Serving},
+	url = {https://knative.dev/docs/serving/},
+	urldate = {2025-04-09},
+}
+
+@misc{autoscale_sample_app_go,
+	title = {Autoscale {Sample} {App} - {Go} - {Knative}},
+    author = {Knative},
+	url = {https://knative.dev/docs/serving/autoscaling/autoscale-go/},
+	urldate = {2025-04-09},
+	file = {Autoscale Sample App - Go - Knative:/Users/mwberthoud/Zotero/storage/8N5LJ7T6/autoscale-go.html:text/html},
+}

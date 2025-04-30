@@ -214,3 +214,53 @@ Also, I will re-double my efforts following and modifying few-yearold open sourc
 
 \subsubsection{Open Function}
 Open Function is another open source function orchestrator, which we will look into as an implementation option.
+
+\textbf{Compilers project proposal}
+
+In this section we'll overview the proposed design of the different research components of this project. First, in section \ref{sec:samba}, I'll describe the Samba project implementation. Then, in section \ref{sec:optimization_design} we'll discuss proposed compiler optimization and general optimizations for the Samba system. Finally, in section \ref{sec:eval} we'll cover the means by which I'll evaluate the relative success (or failure) of those performance improvements.
+
+\subsection{Samba Proxy Re-encryption Protocol}
+\label{sec:samba}
+
+Samba applies proxy re-encryption to Function as a Service (FaaS) applications.
+We implement it as an extension to Knative Serving, an open-source cloud technology that can function as a FaaS orchestrator.
+We also implement SambaLite, a simplified proof-of-concept for the proxy re-encryption scheme applied to FaaS.
+
+To understand how Samba and SambaLite work, I'll describe a simple example where we have a function with a maximum of two replicas, Alice and Bob.
+For the sake of consistency we'll call the FaaS provider/orchestrator Proxy.
+For simplicity in this explanation, we'll assume not only Proxy, but also Alice and Bob are always running, which defeats the entire purpose of FaaS, but doesn't effect our analysis of the cryptographic operations.
+Note that when bringing up Bob, Proxy would request that Alice generate a re-encryption key from her to Bob, so we'll assume that is already made.
+We assume that Alice's public key will be known by any prospective clients wishing to run the function, since she is the initially available replica, before the function scales and adds Bob.
+Requests destined for the function are encrypted under Alice's public key, and sent by some Sender to Proxy.
+Proxy then load balances, determining if Alice can currently accept a request.
+If so, Proxy forwards the request to Alice, who can decrypt it with her private key, and send her response to the Proxy, who forwards it to Sender.
+If not, Proxy uses the re-encryption key we mentioned Alice having generated in order to re-encrypt the request to Bob.
+It then forwards the request to Bob, who decrypts, and responds to  Proxy, who forwards that response to Sender.
+
+\subsection{Optimization}
+\label{sec:optimization_design}
+
+The performance impact of adding proxy re-encryption to an otherwise un-encrypted program is no secret.
+The AFGH authors aren't shy about this, but do mention that if they had gone to greater lengths to select proper compiler optimizations, these effects could be reduced.
+\cite{afgh}
+That is the motivation for this proposal.
+With our proxy re-encryption implementation written in Go, we have access to a compiler with many optimizations already built in, and a rich ecosystem of open source extensions.
+The primary contribution of this project will be, through theoretical research, as well as trial and error, determining what set of optimizations for the Go compiler produce the best results for proxy re-encryption in the Samba system.
+
+Beyond the possible compiler optimizations, we will make sure to do another simple optimization at the code level.
+If we were to write the least amount of code possible to implement proxy re-encryption within Samba, that would probably involve the initial replica generating re-encryption keys to re-encrypt messages to itself, so we wouldn't have to code anything for that "base case."
+The optimization here would be to simply code specifically for the case where the request is load balanced to the initial replica, and skip the re-encryption key generation, and re-encryption steps.
+This will limit the cryptographic operations performed to those that are absolutely necessary.
+
+\subsection{Evaluation}
+\label{sec:eval}
+
+Knative and the Samba extension are both written in Go.
+Among the many benefits of the Go Programming Language is its standard library, which contains many idiomatically written packages for tasks developers need to perform frequently.
+In our case, we'll make extensive use of the "testing" package, and specifically its benchmarking support.
+This will be most helpful for testing the effectiveness of our optimizations on the \texttt{alice}, \texttt{bob}, and \texttt{proxy} binaries within the proof-of-concept SambaLite portion of the project.
+
+Additionally, Knative itself offers a number of ways to benchmark components in its distributed system.
+\cite{knative_serving}
+We will use these tests to compare the performance of Knative's Autoscaling Sample App without the Samba extension vs. with the Samba extension.
+\cite{autoscale_sample_app_go}
