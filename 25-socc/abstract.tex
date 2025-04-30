@@ -1,23 +1,19 @@
-% 200-word maximum
-%
-We propose \SystemName, a Function-as-a-Service system that ensures data
-confidentiality and function order within a function chain, even with an
-untrusted cloud provider or distrusting parties.
-%
-%%\SystemName leverages AMD SEV-SNP trusted execution environments to create
-%%secure function sandboxes, and uses aggregate signatures for control flow
-%%integrity.
-%
-To enable scaling and replication without a trusted key escrow, Samba employs
-proxy re-encryption, allowing any function replica to decrypt messages for its
-target function.
+%%Existing security solutions for Function as a Service (FaaS) cloud systems have limits.
+%%In order to provide confidentiality while maintaining function scaling behavior, they rely on a centralized key escrow.
+%%In order to provide integrity within function chains, they rely on a centralized log.
+%%These solutions necessarilty ascribe trust to parties other than the function user themselves, such as the cloud provider.
+%%We developed SAMBA, a FaaS system that ensures data confidentiality and function integrity within a function chain, even with an untrusted cloud
+%%provider, distrusting function providers, or external attackers.
+%%SAMBA leverages AMD SEV-SNP trusted execution environments
+%%to create secure function sandboxes, built with Google's Project Oak Restricted Kernel.
+%%SAMBA extends Oak Restricted Kernel to use aggregate signatures for control flow integrity, without a trusted external log.
+%%We also extend the Oak Restricted Kernel with a proxy re-encryption implementation to add confidentiality to FaaS systems while still enabling scaling and replication.
+%%This allows function replicas to decrypt messages that were encrypted to its target function, without a trusted key escrow.
+%%By removing external security dependencies, SAMBA reduces the size of the Trusted Computing Base (TCB) in FaaS systems to just include the user's code itself, and the hardware of the cloud machine.
+%%SAMBA is one of many advances in cloud security that will make it possible to store sensitive data, and run trusted workloads in an untrusted cloud.
 
 
-\textbf{adwait}
-
-% Abstract here \ldots Remember to talk about the area, problem,
-% solution, methodology, results, and take-away. In general, an abstract
-% should only be one paragraph and on the order of 200 words.
+% ~200 words
 % area
 % problem
 % solution
@@ -25,18 +21,28 @@ target function.
 % results
 % take-away
 
-Existing security solutions for Function as a Service (FaaS) cloud systems have limits.
-In order to provide confidentiality while maintaining function scaling behavior, they rely on a centralized key escrow.
-In order to provide integrity within function chains, they rely on a centralized log.
-These solutions necessarilty ascribe trust to parties other than the function user themselves, such as the cloud provider.
-We developed SAMBA, a FaaS system that ensures data confidentiality and function integrity within a function chain, even with an untrusted cloud
-provider, distrusting function providers, or external attackers.
-SAMBA leverages AMD SEV-SNP trusted execution environments
-to create secure function sandboxes, built with Google's Project Oak Restricted Kernel.
-SAMBA extends Oak Restricted Kernel to use aggregate signatures for control flow integrity, without a trusted external log.
-We also extend the Oak Restricted Kernel with a proxy re-encryption implementation to add confidentiality to FaaS systems while still enabling scaling and replication.
-This allows function replicas to decrypt messages that were encrypted to its target function, without a trusted key escrow.
-By removing external security dependencies, SAMBA reduces the size of the Trusted Computing Base (TCB) in FaaS systems to just include the user's code itself, and the hardware of the cloud machine.
-SAMBA is one of many advances in cloud security that will make it possible to store sensitive data, and run trusted workloads in an untrusted cloud.
 
+Securing Function-as-a-Service (FaaS) systems proves difficult due to their ephemeral nature.
+%
+When encrypting a message to a function, you must know which auto-scaled replica of the function you're encrypting to, unless replicas share private keys.
+%
+This problem can only be addressed by storing keys somewhere, or re-encrypting messages encrypted to one replica into messages decryptable by another.
+
+%
+We propose \SystemName, a Function-as-a-Service system that enables data
+confidentiality and function order within a function chain, even with an
+untrusted cloud provider or distrusting parties.
+%
+%%\SystemName leverages AMD SEV-SNP trusted execution environments to create
+%%secure function sandboxes, and uses aggregate signatures for control flow
+%%integrity.
+%
+We implement \SystemName-Lite, a proof of concept system employing proxy re-encryption between replica and proxy services.
+To enable scaling and replication without a trusted key escrow, \SystemName-Lite employs
+proxy re-encryption, allowing any function replica to decrypt messages for its
+target function.
+%
+We evaluate the performance of \SystemName-Lite's encryption operations by comparing our proxy re-encryption implementation to a simple RSA implementation, which relies on sharing of private keys.
+%
+We show that \SystemName-Lite incurs minimal overhead, and lets each function instance keep their secret key secret.
 
