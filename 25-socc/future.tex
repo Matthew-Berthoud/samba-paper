@@ -1,7 +1,11 @@
 \section{Future Work}
 \label{sec:future}
 
-\parhead{Trusted function runtime.}
+\subsection{Trusted Function Runtime}
+
+For the purposes of the \SystemName libaray and \SystemName-Lite system, we've claimed that the proxy/cloud provider can be untrusted.
+This isn't exactly true in the system as we've presented it, since the instances still rely on the proxy to obtain key material (public parameters) to create their keys, and the keys are in the memory of these instances which are running on the cloud provider's hardware.
+In order to make this threat model assumption hold, the eventual Knative \SystemName extension, will have to run its function instances in Trusted Execution Environments (TEEs) on hardware capable of doing so.
 %
 For \SystemName's function runtime, we will extend \emph{Project Oak},\footnote{
 \url{https://github.com/project-oak/oak}
@@ -43,7 +47,7 @@ We will modify the Oak kernel with cryptographic support to transparently
 manage keys and encrypt I/O\@.
 
 
-\parhead{Control flow integrity.}
+\subsection{Control Flow Integrity}
 %
 Beyond encrypting function I/O, \SystemName must ensure the integrity
 of the sequence of functions.
@@ -66,7 +70,7 @@ some subset thereof),  Oak will locally verify that the received event and the
 function's subsequent output conform to the graph.
 
 
-\parhead{Optimization.}
+\subsection{Optimization}
 %
 \SystemName relies on certificate chains both for attestation and provenance.
 %
@@ -82,17 +86,17 @@ small aggregate signature $\sigma^*$.
 The aggregate signature convinces a verifier that each signer signed their
 respective message.
 
-\textbf{adwait "discussion"}
-% Discussion (discuss some of the important simplifying assumptions, and
-% suggest possibilities for future work)
-
-Notably, to get any benefit from SAMBA, users will have to use one of the three open source FaaS orchestrators (whichever we decide on), and run only Oak Restricted Kernel VMs.
-It's doubtful that this will become the standard for FaaS workloads, since most in-use FaaS systems, such as AWS Lambda, use proprietary software.
-SAMBA's practical in-market use cases are therefore likely next to none, but it serves as a good proof of concept for how to add these security features to FaaS systems.
-
-As noted in the threat model, side channel attacks are out of scope for this project.
-This assumption simplifies things greatly, since side-channel attacks are definitely feasible in the modern cloud. \cite{zhao_everywhere_2024} \cite{zhao_last-level_2024}
-I acknowledge that it's a bit fantastical to assume that the cloud provider could be malicious, but woudlnt' think to perform a side-channel attack on our otherwise largely protected system.
-Defenses against side-channel attacks in the cloud are another active research area.
-It is unfortunate that strengthening overall security and hardeing against side-channel attacks seem to both leave the other vulnerable.
-Uniting solutions for these two issues without significant performance impact is an interesting research area worthy of pursuit.
+%% \textbf{adwait "discussion"}
+%% % Discussion (discuss some of the important simplifying assumptions, and
+%% % suggest possibilities for future work)
+%% 
+%% Notably, to get any benefit from SAMBA, users will have to use one of the three open source FaaS orchestrators (whichever we decide on), and run only Oak Restricted Kernel VMs.
+%% It's doubtful that this will become the standard for FaaS workloads, since most in-use FaaS systems, such as AWS Lambda, use proprietary software.
+%% SAMBA's practical in-market use cases are therefore likely next to none, but it serves as a good proof of concept for how to add these security features to FaaS systems.
+%% 
+%% As noted in the threat model, side channel attacks are out of scope for this project.
+%% This assumption simplifies things greatly, since side-channel attacks are definitely feasible in the modern cloud. \cite{zhao_everywhere_2024} \cite{zhao_last-level_2024}
+%% I acknowledge that it's a bit fantastical to assume that the cloud provider could be malicious, but woudlnt' think to perform a side-channel attack on our otherwise largely protected system.
+%% Defenses against side-channel attacks in the cloud are another active research area.
+%% It is unfortunate that strengthening overall security and hardeing against side-channel attacks seem to both leave the other vulnerable.
+%% Uniting solutions for these two issues without significant performance impact is an interesting research area worthy of pursuit.
