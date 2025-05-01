@@ -10,41 +10,52 @@
 %%     \label{fig:fsop-latency-hist-2col}
 %% \end{figure*}
 
-To evaluate the performance of \SystemName, we wrote a series of micro-benchmarks in the library.
-These microbenchmarks test each of the five main \SystemName PRE-related functions.
-The results from running these benchmarks on an M1 Mac are shown below.
+To evaluate the performance of the \SystemName library, we wrote a series of benchmark tests.
+Not only did we test the performance of \SystemName using proxy re-encryption, but we also compared it to an RSA implementation.
+Note that actually implementing \SystemName with RSA instead of PRE would defeat the purpose, as either the proxy would have to be trusted with every instance's private key, or all instances of the same function would have to share the same key pair.
 
-{\footnotesize
-\begin{verbatim}goos: darwin
-goarch: arm64
-pkg: github.com/etclab/samba
-cpu: Apple M1
-BenchmarkEncrypt-8              	     358	   3157878 ns/op
-BenchmarkDecrypt1-8             	     664	   1799279 ns/op
-BenchmarkGenReEncryptionKey-8   	    1558	    770583 ns/op
-BenchmarkReEncrypt-8            	     964	   1247834 ns/op
-BenchmarkDecrypt2-8             	    1141	   1029601 ns/op
-PASS
-ok  	github.com/etclab/samba	6.129s
-\end{verbatim}
-}
+For the RSA implementation, we only benchmarked the functions responsible for encrypting and decrypting messages, since "re-encryption" is not a concept in RSA.
+For the proxy re-encryption implementation, we benchmarked the \SystemName functions responsible for encrypting and decrypting messages, generating re-encryption keys, and re-encrypting messages.
+Additionally, we benchmarked the underlying proxy re-encryption functions, from the PRE package we wrote.
+The benchmarks were run using the Go testing framework, which provides a simple way to measure the time taken by each function.
+Our results from an 8-core M1 Mac of for the \SystemName benchmarks are shown in Figure~\ref{fig:samba-bench}, and the PRE benchmarks are shown in Figure~\ref{fig:pre-bench}.
 
-The encryption performed by the external sender is the least expensive, which is good for responsiveness, since the user's request will be on its way relatively fast.
-The generation of a re-encryption key and the use to that key to re-encrypt are more expensive.
-Interestingly, the decryption of a re-encrypted message takes about twice as long as the decryption of a message encrypted under the original RSA.
+\begin{figure}
+	\centering
+	\includegraphics[width=0.48\textwidth]{figs/samba-bench}
+	%
+	\caption{Benchmark results for the \SystemName library, with both PRE and RSA operations.}
+	%
+	\label{fig:samba-bench}
+\end{figure}
 
-To compare \SystemName's efficiency relative to cryptographic alternatives, we wrote functions and microbenchmarks for simple RSA, where we assume that either only one replica can exist for each function, or the proxy is trusted, and uses the leader's private key to decrypt and re-encrypt messages to the various replicas.
-The benchmark results for RSA are shown below.
+\begin{figure}
+	\centering
+	\includegraphics[width=0.48\textwidth]{figs/pre-bench}
+	%
+	\caption{Benchmark results for the PRE library.}
+	%
+	\label{fig:pre-bench}
+\end{figure}
 
-\color{red}
-show RSA results
 
-Compare the two
 
-Show some figures
+%% The encryption performed by the external sender is the least expensive, which is good for responsiveness, since the user's request will be on its way relatively fast.
+%% The generation of a re-encryption key and the use to that key to re-encrypt are more expensive.
+%% Interestingly, the decryption of a re-encrypted message takes about twice as long as the decryption of a message encrypted under the original RSA.
+%% 
+%% To compare \SystemName's efficiency relative to cryptographic alternatives, we wrote functions and microbenchmarks for simple RSA, where we assume that either only one replica can exist for each function, or the proxy is trusted, and uses the leader's private key to decrypt and re-encrypt messages to the various replicas.
+%% The benchmark results for RSA are shown below.
 
-Justify the increased overhead
-\color{black}
+%% \color{red}
+%% show RSA results
+%% 
+%% Compare the two
+%% 
+%% Show some figures
+%% 
+%% Justify the increased overhead
+%% \color{black}
 
 
 %
