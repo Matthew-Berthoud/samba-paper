@@ -1,0 +1,46 @@
+\section{Goals \& Assumptions}
+\label{sec:motivation}
+
+\parhead{Threat Model}
+%
+Our \SystemName system has three parties: the \emph{cloud provider}, the
+\emph{function providers}, and \emph{external attackers}.
+%
+A function chain may contain functions from multiple providers.
+%
+For any given function provider, the potential adversaries
+are the other function providers in the chain, the cloud provider, and
+external attackers.
+%
+The goal of an adversary is to learn the inputs or outputs of a (peer)
+function, modify these inputs or outputs, or modify the sequence of functions
+in the chain (e.g., to insert a function that sends data to an
+adversary-controlled log).
+%
+A function provider can submit any function to the chain, including a
+malicious function that tries to leak data or subvert the cloud
+provider.
+%
+We assume that functions may contain bugs that unintentionally leak
+data or expose the function to exploitation.
+%
+We assume an adversary cannot breach the security of confidential VMs; we trust
+the system software in the VM, and consider side-channel attacks out-of-scope.
+%
+%Since the cloud provider can trivially deny service, we do not guarantee
+%availability.
+
+\parhead{Goals}
+%
+\SystemName has a goal of enabling encryption between functions even in the
+case of auto-scaling.
+%
+One goal of \SystemName-Lite is to help achieve \SystemName by implementing a
+library which exposes methods that function replicas/instances can call to
+encrypt data between them one another, with a limited trusted computing base
+(TCB), and limited overhead.
+%
+Additionally, we strive to make \SystemName easy to use, so another goal of
+\SystemName-Lite is to provide understandable examples and documentation for
+the \SystemName library.
+

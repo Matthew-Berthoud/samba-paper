@@ -10,25 +10,24 @@ transactions or machine learning inference, thus exposing private data to the
 cloud provider and cloud attackers.
 %
 While secure hardware enclaves, such as Intel SGX, can protect function chains,
-prior enclaved FaaS systems rely on a trusted key-provisioning enclave
-to distribute encryption keys to the function instances.
+prior enclaved FaaS systems rely on a trusted key-provisioning enclave to
+simplify autoscaling and authentication.
 %
-Unfortunately,
-such key provisioning enclaves constitute a key escrow, and thus a single target for
-compromising the entire function chain.
+Unfortunately, such key provisioning enclaves constitute a key escrow, and thus
+a single target for compromising the entire function chain.
 
 
-In this thesis, we present our initial work on \Name, a confidential FaaS
+In this thesis, we present our initial work on \SystemName, a confidential FaaS
 system that removes the need for a trusted key provisioning service.
 %
-\Name runs each function instance in a secure enclave that locally generates
-its encryption keys.
+\SystemName runs each function instance in a secure enclave that locally
+generates its encryption keys.
 %
 To allow the untrusted cloud provider to autoscale function instances without
-introducing trusted services, \Name leverages cryptographic schemes for proxy
-re-encryption, thus allowing the provider to safely re-encrypt data for any
-instance replica.
+introducing trusted services, \SystemName leverages cryptographic schemes for
+proxy re-encryption, thus allowing the provider to safely re-encrypt data for
+any instance replica.
 %
-We present our initial work in designing, implementing, and evaluating \Name's
-proxy re-encryption protocol, and discuss future work in integrating \Name with
-the popular Knative serverless platform.
+We present our initial work in designing, implementing, and evaluating
+\SystemName's proxy re-encryption protocol, and discuss future work in
+integrating \SystemName with the popular Knative serverless platform.
