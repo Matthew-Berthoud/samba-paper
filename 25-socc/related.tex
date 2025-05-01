@@ -1,10 +1,56 @@
 \section{Related Works}
-\label{sec:related}
+\label{sec:relwork}
 
-Tortor tristique praesent mus mollis vestibulum arcu dolor. Lacinia vel metus
-semper, ultricies eleifend rhoncus eleifend. Leo dictum fusce molestie gravida
-hac dui consectetur etiam. Aquam vel cubilia tellus dui sed porta rhoncus id.
-Maecenas pharetra hac bibendum cursus montes. Id in phasellus felis habitant
-habitant fermentum accumsan dis dapibus. Ipsum curae dictumst leo eget massa
-quis vestibulum ac lacus. Fermentum class vulputate a id egestas aliquam id.
-Vel bibendum ac nascetur class leo molestie natoque a.
+\textbf{all adwait}
+
+% Related Work (``somewhat related'' work goes here; directly related work
+% goes into the Introduction)~\cite{anati_innovative_nodate}.
+
+\subsection{TEEs}
+
+The Oak Restricted Kernel extension continues recent exploration into confidential computing and Trusted Execution Environment (TEE) research.
+Foundational work in the TEE area has been done using Intel SGX \cite{anati_innovative_nodate}, which introduced the concept of secure enclaves for CPU-based attestation and sealing at the process level.
+SGX hardware can be used in architectures to prevent attacks between processes, and ensure sandboxing \cite{england_foundation_nodate},
+as well as allow for simplified trust models where groups of TEEs, or enclaves, don't have to rely on third party verification, but can instead do so between eachother \cite{chen_mage_nodate}. Work has also been done to allow applications to run on TEEs even if not specifically written to do so \cite{tsai_graphene-sgx_nodate}, and not rely so heavily on hardware implementation \cite{ahmad_extensible_nodate}.
+
+AMD SEV \cite{ahmad_veil_2023} and Intel TDX \cite{cheng_intel_2024} are virtual machine-level TEEs.
+TEEs allow you to not have to trust cloud providers, and only have to trust the TEE CPU hardware itself. However, TEEs could be tampered with or misconfigured during boot, which is a problem 
+Narayanan et. al. address. \cite{narayanan_remote_2023}
+
+Both process-based and VM-based TEEs have shaped the landscape for remote attestation and secure workloads in untrusted environments, facilitating a range of security solutions relevant to our work.
+
+\subsection{Oak}
+
+Project Oak, which serves as the foundation for this research, extends the TEE paradigm by allowing users to build distributed systems where individual nodes can attest to each other's hardware and software environments \cite{noauthor_project-oakoak_nodate}. Eichner et al. \cite{eichner_confidential_2024} discuss how Project Oak leverages TEEs to ensure that information exchange between these nodes remains confidential and trustworthy in machine learning applications.
+Bonawitz et. al. \cite{bonawitz_towards_2019} and Huba et. al. \cite{huba_papaya_2022} and the Google Parfait project \cite{noauthor_google-parfaitfederated-compute_2024} design systems for federated learning as well.
+
+Oak's approach to leveraging the Device Identifier Composition Engine (DICE) \cite{jager_rolling_2017} allows for dynamic, rolling attestation beyond just initial boot-time verifications, ensuring integrity even in ongoing operations, as each stage measures and records verification for the next.
+
+The Oak Restricted Kernel lacks, a lot, such as a file system and scheduler. Some work with state continuity in confidential computing has been done by Niu et. al. \cite{niu_narrator_2022}.
+
+\subsection{Containers}
+
+The other of the two environments created by Project Oak, besides the restricted kernel, is a custom Linux distribution, where users can run Oak Containers.
+The security implications of containers in the cloud is an active research area \cite{tak_understanding_nodate}, and there are a number of potential exploits to break out of isolation \cite{gao_houdinis_2019}.
+Similar to Oak, container platforms such as X-Containers \cite{shen_x-containers_2019} have made efforts to reduce attack surface by limiting the privileges of code running in containers. Similarly, this is done by bpfbox which extends Linux, provides some process confinement \cite{findlay_bpfbox_2020}. Performance concerns related to eBPF are addressed by Zhou et. al. \cite{zhou_electrode_nodate}.
+Performance concerns related to booting many containers, for hightly distributed systems are addressed by Li et. al. with RunD \cite{li_rund_nodate}.
+
+
+\subsection{Attestation}
+
+Attestation, the mechanism through which trust in remote systems is established, has evolved significantly over time. Work by Coker et al. \cite{coker_principles_2011} outlined foundational principles for remote attestation, stressing the importance of verifiable evidence in distributed systems. Modern approaches, such as Knauth et al. \cite{knauth_integrating_nodate}, demonstrate how attestation can be integrated into higher-layer protocols like Transport Layer Security (TLS), ensuring end-to-end trustworthiness in communication channels. The append-only logging solution we offer for the Oak Restricted Kernel is similar to Nimble \cite{angel_nimble_2023}, which is an append-only ledger for preventing rollback attacks. These attacks have also been addressed by ROTE \cite{matetic_rote_nodate} and ElephantDP \cite{jin_elephants_2024}.
+
+\subsection{Function as a Service}
+
+In the context of Function as a Service (FaaS) computing, the stateless and ephemeral nature of workloads presents new challenges for attestation.
+Shahrad et al. \cite{shahrad_architectural_2019} examine the architectural implications of FaaS, pointing out the need for efficient, scalable mechanisms to verify the trustworthiness of short-lived functions. Similarly, Lynn et al. \cite{lynn_preliminary_2017} review several serverless computing platforms, emphasizing the need for new approaches to manage security in the FaaS model, where functions are invoked dynamically and typically run in highly ephemeral environments. Jegan et. al. \cite{jegan_guarding_nodate} solve for some control flow concerns among serverless applications with Kalium. Li \cite{li_automatic_nodate} solves for a related access control policy generation problem among microservices.
+
+
+In addition, Zhou \cite{zhao_reusable_nodate} explores the intersection of serverless and confidential computing, highlighting that the transient nature of serverless functions calls for continuous and scalable attestation strategies. The work stresses the importance of 
+eliminating overhead during boot, to optimize performance, even with many deployed FaaS services.
+
+Moreover, large-scale applications and FaaS workloads need rapid scalability and the ability to dynamically increase or decrease resources based on demand. A comprehensive study by Lynn et al. \cite{lynn_preliminary_2017} discusses how platforms like AWS Lambda have become the de facto standard for enterprise FaaS, but also points to the limitations in security that emerge from serverless computing’s reliance on externalized security controls. This aligns with our research, where extending Oak aims to provide more integrated and granular security mechanisms tailored for FaaS environments.
+
+Other projects such as RIoT \cite{england_foundation_nodate} have provided security guarantees for very limited operating systems, comparable to the Oak Restricted Kernel.
+
+The work we are doing goes beyond what is currently availible by taking one of the most limited attack service options, the Oak Restricted Kernel, and extending it to provide more of the features that more vulnerable, heavier implementations can provide.

@@ -12,6 +12,7 @@
 \usepackage{color}
 \usepackage{graphicx}
 \usepackage[labelformat=simple]{subcaption}
+%%\usepackage{wrapfig}
 \usepackage{xspace}
 \usepackage{multirow}
 \usepackage{makecell} % Not sure if we need this
@@ -23,6 +24,14 @@
 
 \usepackage{ulem}
 \normalem
+
+\usepackage{tikz}
+\newcommand*\circled[1]{\tikz[baseline=(char.base)]{
+            \node[shape=circle,fill,inner sep=1.8pt] (char) {\small\textcolor{white}{#1}};}}
+\newcommand*\wcircled[1]{\tikz[baseline=(char.base)]{
+            \node[shape=circle,draw,inner sep=1.8pt] (char) {\small #1};}}
+
+\usepackage{tcolorbox}
 
 % }}}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -36,6 +45,9 @@
 \renewcommand\thesubfigure{(\alph{subfigure}) }
 
 \newcommand{\parhead}[1]{\medskip \noindent \textbf{#1}\hskip .1in}
+
+\newcommand{\SystemName}{\textsc{Samba}\xspace}
+
 
 % }}}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
