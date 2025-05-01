@@ -19,10 +19,11 @@
 
 \subsection{Function as a Service}
 Function as a Service (FaaS) is a cloud computing model that enables developers to deploy and execute individual functions or pieces of code without managing the underlying infrastructure.
-These functions are event-driven and run in stateless containers, automatically scaling up or down based on demand, according to the policy of the orchestrator.
-FaaS eliminates the need for developers to provision and managing servers, allowing them to focus on writing code while the cloud provider handles resource allocation, availability, and execution.
+It is sometimes referred to as serverless computing, since
+these functions are event-driven and run in stateless containers, automatically scaling up or down based on demand, according to the policy of the orchestrator.
+FaaS eliminates the need for developers to provision and manage servers, allowing them to focus on writing code while the cloud provider handles resource allocation, availability, and execution.
 Popular FaaS platforms include AWS Lambda, Google Cloud Functions, and Azure Functions.
-Open and partially open source FaaS platforms discussed in this paper include OpenFaaS, OpenWhisk, and Open Function.
+Open and partially open source FaaS platforms include OpenFaaS, OpenWhisk, and Open Function, as well as Knative \footnote{\url{https://knative.dev}}, the open source serverless library to be used in \SystemName.
 
 %%\subsection{Asymmetric Cryptography}
 %%Asymmetric cryptography, also known as public key cryptography, is a cryptographic system that uses a pair of keys: a public key and a secret key.
@@ -168,7 +169,7 @@ the system software in the VM, and consider side-channel attacks out-of-scope.
 
 \SystemName has a goal of enabling encryption between functions even in the case of auto-scaling.
 One goal of \SystemName-Lite is to help achieve \SystemName by implementing a library which exposes methods that function replicas/instances can call to encrypt data between them one another, with a limited trusted computing base (TCB), and limited overhead.
-Additionally, we strive to make \SystemName easy to use, so another goal of \SystemName-Lite is to provide understandable examples and documentation for the library.
+Additionally, we strive to make \SystemName easy to use, so another goal of \SystemName-Lite is to provide understandable examples and documentation for the \SystemName library.
 
 %% This goal will be achieved in \SystemName by implementing support for proxy re-encryption within the runtime of the VMs that get scaled by the FaaS orchestrator. The following example explains how this works.
 %% Say function $A$ is passing data to function $B$.

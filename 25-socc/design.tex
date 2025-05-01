@@ -33,6 +33,7 @@ along with an attestation report.
 %
 In \SystemName, that report will likely prove that the key was generated in an Oak
 Trusted Execution Environment\@.
+\color{red}TODO: move TEE stuff all to future work\color{black}
 %
 We'll discuss this future work in more detail in Section~\ref{sec:future}.
 %As shown in Figure~\ref{fig:arch},
@@ -62,27 +63,29 @@ In this section we'll overview the design of the \SystemName system.
 %%%
 \SystemName applies proxy re-encryption to Function as a Service (FaaS) applications.
 %
-We implement it as an extension to Knative Serving\footnote{url{https://knative.dev/docs/serving/}}, an open-source cloud technology that can function as a FaaS orchestrator.
+We implement it as an extension to Knative Serving\footnote{\url{https://knative.dev/docs/serving/}}, an open-source cloud technology that can function as a FaaS orchestrator.
 %
 Knative Serving is a Kubernetes-based platform that enables developers to deploy and manage serverless applications.
 %
 Using their existing Knative Serving infrastructure, we can add \SystemName's proxy re-encryption capabilities to functions deployed on Knative.
 %
 Knative functions have \texttt{QueueProxy} sidecar containers that can be used to perform instance-level re-encryption operations on the function's behalf.
+
+
+
+We implement \SystemName-Lite, a simplified proof-of-concept for the proxy re-encryption scheme applied to FaaS.
 %
-We also implement \SystemName-Lite, a simplified proof-of-concept for the proxy re-encryption scheme applied to FaaS.
-%
-To understand how \SystemName and \SystemName-Lite work, I'll describe a simple example where we have a function with a maximum of two replicas, Alice and Bob.
-This example describes the operation of the \SystemName-Lite system.
+To understand how \SystemName-Lite works, I'll describe a simple example where we have a function with a maximum of two replicas, Alice and Bob.
 For the sake of consistency we'll call the FaaS provider/orchestrator Proxy.
 For simplicity in this explanation, we'll assume not only Proxy, but also Alice and Bob are always running, which defeats the entire purpose of FaaS, but doesn't effect our analysis of the cryptographic operations.
-Note that when bringing up Bob, Proxy would request that Alice generate a re-encryption key from her to Bob, so we'll assume that is already made.
-We assume that Alice's public key will be known by any prospective clients wishing to run the function, since she is the initially available replica, before the function scales and adds Bob.
+We assume that Alice's public key will be known by any prospective clients wishing to run the function, since she is the leader replica, so Proxy will advertise her public key as the public key of the function.
 Requests destined for the function are encrypted under Alice's public key, and sent by some Sender to Proxy.
 Proxy then load balances, determining if Alice can currently accept a request.
 If so, Proxy forwards the request to Alice, who can decrypt it with her private key, and send her response to the Proxy, who forwards it to Sender.
-If not, Proxy uses the re-encryption key we mentioned Alice having generated in order to re-encrypt the request to Bob.
-It then forwards the request to Bob, who decrypts, and responds to  Proxy, who forwards that response to Sender.
+If not, Proxy selects an availible replica, in this case Bob, and requests a re-encryption key from Alice to Bob (if one hasn't already been made).
+Proxy then re-encrypts the request to Bob, forwards the request to Bob.
+Bob decrypts, and responds to Proxy, who forwards that response to Sender.
+The decryption operation for a re-encrypted message is different than a normal RSA decryption, which we'll touch on more in section~\ref{sec:PRE}.
 
 %% \subsection{Optimization}
 %% \label{sec:optimization_design}

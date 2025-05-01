@@ -103,6 +103,7 @@ For data confidentiality, previous research systems~\cite{16-osdi-ryoan,
     23-sec-confidential_serverless,
     23-socc-cryonics}
 leverage hardware trusted execution environments
+\color{red}TODO: make TEEs a less prominent part of the intro so we don't overcomplicate until future work\color{black}
 (TEEs, particularly Intel SGX enclaves~\cite{
     13-hasp-innovative_instructions,
     16-techreport-intel_sgx_explained})
@@ -169,11 +170,11 @@ the signatures of the entire chain into a single, compact signature.
 
 In this paper, we implement \SystemName-Lite, a proof-of-concept system implementing part \wcircled{2} of \SystemName.
 %
-Using a proxy re-encryption implementation we ported to Go\footnote{\url{https://github.com/etclab/pre}}, we wrote a \SystemName{\url{https://github.com/etclab/samba}} library to perform the cryptographic operations that will be needed in the eventual \SystemName extension of a FaaS library.
+Using a proxy re-encryption implementation we ported to Go\footnote{\url{https://github.com/etclab/pre}}, we wrote a \SystemName \footnote{\url{https://github.com/etclab/samba}} library to perform the cryptographic operations that will be needed in the eventual \SystemName extension of a FaaS library.
 %
 We wrote a distributed \SystemName-Lite \footnote{\url{https://github.com/etclab/samba/tree/main/cmd}} system to prove our concept, and test the latency of our encryption operations.
 %
-We compared the overhead of encrypting with \SystemName proxy-re-encryption operations to RSA-based operations, the results of which are discussed in detail in section~\ref{sec:eval}.
+We compared the overhead of encrypting with \SystemName proxy-re-encryption operations to RSA-based operations, the results of which are discussed in detail in section~\ref{sec:evaluation}.
 
 
 %A key challenge is preserving this tracking across indirect flows: although
@@ -229,7 +230,7 @@ Section~\ref{sec:design} describes the design of the \SystemName system.
 %
 Section~\ref{sec:implementation} describes the implementation and operation details of \SystemName-Lite.
 %
-Section~\ref{sec:eval} provides metrics highlighting the performance overhead of the \SystemName operations.
+Section~\ref{sec:evaluation} provides metrics highlighting the performance overhead of the \SystemName operations.
 %
 Section~\ref{sec:future} describes future work required for the \SystemName system.
 %

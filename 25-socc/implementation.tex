@@ -1,12 +1,18 @@
 \section{Implementation}
 \label{sec:implementation}
 
-\subsection{Proxy Re-encryption (PRE) library}
+\subsection{Proxy Re-encryption Library}
+\label{sec:PRE}
 %
 We implemented a library for proxy re-encryption (PRE) in Go based on the AFGH proxy re-encryption scheme~\cite{05-ndss-improved_proxy_reencryption}.
 In order to send a plaintext message, the sender first generates an AES key, then encrypts the message under that key.
 Then, they encrypt that ciphertext and its AES key with the recipient's public key.
+$$E(m) = E_{k^+}(k_{AES},E_{k_{AES}}(m))$$
+
 Once received, the recipient can decrypt the message with their private key, then decrypt the ciphertext with the now-exposed AES key.
+
+\color{red}TODO: make sure the encryption formula is correct,
+and figure out the decryption formula to put here\color{black}
 %
 
 %
@@ -30,7 +36,9 @@ type SambaProxy struct {
 }
 \end{verbatim}
 
-Individual function replicas, also called instances, can use the public parameters to generate their public-private keypair, and register their public key with the function orchestrator.
+The cloud provider plays the role of the \texttt{SambaProxy} in FaaS systems.
+%
+Individual function replicas, also called instances, can use the public parameters to generate their public-private keypair, and register their public key with the proxy.
 %
 The function instances map keeps track of what replicas belong to what function. Knative will be periodically polled to keep this updated.
 %
