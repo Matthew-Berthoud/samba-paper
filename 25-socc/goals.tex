@@ -1,0 +1,77 @@
+\section{Goals \& Assumptions}
+\label{sec:motivation}
+
+\parhead{Threat model.}
+%
+Our \SystemName system has three parties: the \emph{cloud provider}, the
+\emph{function providers}, and \emph{external attackers}.
+%
+A function chain may contain functions from multiple providers.
+%
+For any given function provider, the potential adversaries
+are the other function providers in the chain, the cloud provider, and
+external attackers.
+%
+The goal of an adversary is to learn the inputs or outputs of a (peer)
+function, modify these inputs or outputs, or modify the sequence of functions
+in the chain (e.g., to insert a function that sends data to an
+adversary-controlled log).
+%
+A function provider can submit any function to the chain, including a
+malicious function that tries to leak data or subvert the cloud
+provider.
+%
+We assume that functions may contain bugs that unintentionally leak
+data or expose the function to exploitation.
+%
+We assume an adversary cannot breach the security of confidential VMs; we trust
+the system software in the VM, and consider side-channel attacks out-of-scope.
+%
+%Since the cloud provider can trivially deny service, we do not guarantee
+%availability.
+
+
+\parhead{Goals.}
+%
+% Security goals
+% - confidentiality
+% - integrity
+% - key recovery (rotation)
+%
+Our primary security goals when designing \SystemName are:
+%
+\begin{itemize}
+    \item[\textbf{S1}] \emph{Confidentiality}: 
+        An attacker that breaches the FaaS platform or exploits a function
+        should not be able to undermine the confidentiality of a function or
+        its I/O\@.
+        %
+    \item[\textbf{S2}] \emph{Integrity}:
+        An attacker that breaches the FaaS platform or exploits a function
+        should not be able to alter the control flow of a function chain.
+\end{itemize}
+%
+Additionally, we have the following functional goals:
+%
+\begin{itemize}
+    \item[\textbf{F1}] \emph{Application transparency}: \SystemName should
+        support unmodified functions.
+        %
+        In particular, a function developer should not have to modify their
+        fucntion to support \SystemName's security features.
+        %
+    \item[\textbf{F2}] \emph{Compatibility with existing FaaS platforms}:
+        \SystemName should extend current FaaS platforms (our future work
+        targets Knative).
+        %
+        This implies supporting the autoscaling policies of such platforms
+        (including scaling down to zero replicas).
+        %
+    \item[\textbf{F3}] \emph{Preservation of Control Plane Trust}:
+        \SystemName must not add trusted components to the FaaS control plane.
+        %
+    \item[\textbf{F4}] \emph{Low performance overheads}:
+        \SystemName should impose little performance overhead on the
+        FaaS applications, both in terms of client latency and
+        resource usage.
+\end{itemize}
