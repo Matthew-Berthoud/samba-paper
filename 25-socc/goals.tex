@@ -43,35 +43,35 @@ Our primary security goals when designing \SystemName are:
 \begin{itemize}
     \item[\textbf{S1}] \emph{Confidentiality}: 
         An attacker that breaches the FaaS platform or exploits a function
-        should not be able to undermine the confidentiality of a function or
+        must not be able to undermine the confidentiality of a function or
         its I/O\@.
         %
     \item[\textbf{S2}] \emph{Integrity}:
         An attacker that breaches the FaaS platform or exploits a function
-        should not be able to alter the control flow of a function chain.
+        must not be able to alter the control flow of a function chain.
 \end{itemize}
 %
 Additionally, we have the following functional goals:
 %
 \begin{itemize}
-    \item[\textbf{F1}] \emph{Application transparency}: \SystemName should
+    \item[\textbf{F1}] \emph{Application transparency}: \SystemName must
         support unmodified functions.
         %
-        In particular, a function developer should not have to modify their
-        fucntion to support \SystemName's security features.
+        In particular, a function developer must not have to modify their
+        function to support \SystemName's security features.
         %
     \item[\textbf{F2}] \emph{Compatibility with existing FaaS platforms}:
-        \SystemName should extend current FaaS platforms (our future work
+        \SystemName must extend current FaaS platforms (our future work
         targets Knative).
         %
         This implies supporting the autoscaling policies of such platforms
         (including scaling down to zero replicas).
         %
-    \item[\textbf{F3}] \emph{Preservation of Control Plane Trust}:
+    \item[\textbf{F3}] \emph{Preservation of Untrusted Control Plane}:
         \SystemName must not add trusted components to the FaaS control plane.
         %
     \item[\textbf{F4}] \emph{Low performance overheads}:
-        \SystemName should impose little performance overhead on the
+        \SystemName must impose only modest performance overhead on the
         FaaS applications, both in terms of client latency and
         resource usage.
 \end{itemize}
