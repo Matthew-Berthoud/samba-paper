@@ -101,7 +101,7 @@ respective message.
 
 \subsection{Integration with Knative}
 
-\parhead{Knative Overview}
+\parhead{Knative overview.}
 %
 % https://knative.dev/docs/getting-started/next-steps/
 % https://knative.dev/docs/serving/architecture/
@@ -134,3 +134,16 @@ buffer requests when needed, similar to the activator.
 To support function chaining, Knative provides an event mesh---an abstraction
 of a publish-subscribe system---that enables asynchronous, store-and-forward
 message delivery, decoupling senders and recipients in time.
+
+
+\parhead{\SystemName Knative support.}
+%
+As the proxy-queue sidecar interposes on the function's I/O, we plan to augment
+the sidecar with the functionality for proxy re-encryption and control-flow
+enforcement.
+%
+In this way, the function container itself remains unchanged.
+
+
+
+
