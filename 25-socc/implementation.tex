@@ -1,10 +1,10 @@
 \section{Implementation}
 \label{sec:implementation}
 
-The \SystemName-Lite system relies on two libraries that we implemented. First, we'll discuss the \texttt{pre} library\footnote{\url{https://github.com/etclab/pre}},
+The \SystemName-Lite system relies on two libraries that we implemented. First, we discuss the \texttt{pre} library\footnote{\url{https://github.com/etclab/pre}},
 which implements the AFGH proxy re-encryption scheme in Go.~\cite{05-ndss-improved_proxy_reencryption}
-Then we'll discuss the \texttt{samba} library\footnote{\url{https://github.com/etclab/samba}}, which calls provides a simple interface for the \SystemName system, relying on the \texttt{pre} library to perform the cryptographic operations.
-Finally, we'll cover the \SystemName-Lite system itself, which is contained as a separate entity within the \SystemName repository.
+Then we discuss the \texttt{samba} library\footnote{\url{https://github.com/etclab/samba}}, which calls provides a simple interface for the \SystemName system, relying on the \texttt{pre} library to perform the cryptographic operations.
+Finally, we cover the \SystemName-Lite system itself, which is contained as a separate entity within the \SystemName repository.
 
 \subsection{Proxy Re-encryption Library}
 \label{sec:PRE}
@@ -19,8 +19,9 @@ The four main functions of the library are
 	\item \texttt{Decrypt2}, which decrypts a re-encrypted message with a private key.
 \end{enumerate}
 
-The plaintext of a pre scheme is an AES key, so a real plaintext message must be encrypted under that key, and sent alongside the AES key which is encrypted with the \texttt{Encrypt} function.
-To support this, we defined a \texttt{KdfGtToAes256} function that converts the \texttt{pre} "plaintext" a useable AES key.
+The plaintext of a proxy re-encryption scheme is a random element from the target group of a bilinear map.
+We defined a \texttt{KdfGtToAes256} function that converts the \texttt{pre} "plaintext" an AES key.
+The true plaintext message must be encrypted under that key, and sent alongside the AES key which is encrypted with the \texttt{Encrypt} function.
 
 \subsection{\SystemName Library}
 
@@ -90,7 +91,7 @@ type SambaCrypto interface {
 }
 \end{lstlisting}
 This interface is implemented by the \texttt{SambaPRE} struct, which is what \SystemName-Lite uses to perform the cryptographic operations.
-The \texttt{SambaRSA} struct also implements this interface, and we discuss in section~\ref{sec:evaluation} how we use it to compare the performance of \SystemName-Lite with a na\"{i}ve RSA implementation.
+The \texttt{SambaRSA} struct also implements this interface, and we discuss in \S\ref{sec:evaluation} how we use it to compare the performance of \SystemName-Lite with a na\"{i}ve RSA implementation.
 
 These methods mainly wrap calls to the \texttt{pre} library, and perform the serialization tasks mentioned earlier. The \texttt{Decrypt} method also handles the case where the message has been re-encrypted, calling \texttt{Decrypt2} instead of \texttt{Decrypt1} when the \texttt{IsReEncrypted} field in the \texttt{SambaMessage} is true.
 
