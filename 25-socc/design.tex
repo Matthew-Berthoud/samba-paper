@@ -10,8 +10,16 @@
 %%    \label{fig:architecture}
 %%\end{figure}
 
-%% \parhead{Key management.}
-%
+
+\SystemName's future implementation will extend the open source Knative FaaS library.
+To facilitate this process, we designed \SystemName-Lite, a simplified proof-of-concept.
+There are three core parties involved in \SystemName-Lite:
+\begin{enumerate}
+	\item \textbf{Function replicas} (e.g., Alice and Bob) that run some application code.
+	\item \textbf{Proxy} that manages the function replicas, re-encryption, and load balances requests.
+	\item \textbf{Sender} that sends requests to the function, through the proxy.
+\end{enumerate}
+
 In previous research, each function replica in a FaaS system would attest to a trusted key
 server to obtain a shared key pair.
 %
@@ -27,65 +35,84 @@ uses decentralized key management with proxy re-encryption.
     \label{fig:arch}
 \end{figure}
 %
-As Figure~\ref{fig:arch} illustrates, the first instance of a function
-generates a key pair and registers the public key in an untrusted registry,
-along with an attestation report.
-%
-In \SystemName, that report will likely prove that the key was generated in an Oak
-Trusted Execution Environment\@.
-\color{red}TODO: move TEE stuff all to future work\color{black}
-%
-We'll discuss this future work in more detail in Section~\ref{sec:future}.
+As Figure~\ref{fig:arch} illustrates, the first instance of a given function
+generates a key pair and registers the public key in this untrusted registry, managed by the proxy.
+Since no private keys or other sensitive information are stored here, this upholds the threat model of an untrusted proxy.
+In the future, instances will also register an attestation report that verifies the key was generated in a Trusted Execution Environment\@.
+For now, the proxy generates public parameters that are sent to the instances to generate their key pairs.
+Since this key generation is done without a TEE in \SystemName-Lite, a malicious cloud provider could obtain access to all function inputs by reading the private key from memory.
+\SystemName-Lite does not uphold the same threat model as \SystemName, but we lay the groundwork for future guarantees.
+
+After functions are running and registered with the proxy, the sender can make a request to the function.
+The sender must encrypt the message under the public key of just one function instance, despite the potential for any replica to operate on the request.
+Therefore, the proxy maintains a record of which instance is the "leader" instance for each function.
+They advertise the public keys for those leader instances, and the sender encrypts their message under the public key of the leader for the function they're calling.
+
+When the request gets to the proxy, the proxy will first check if the leader instance is available to handle the request.
+If so, the proxy forwards the request to that instance, which can decrypt it with its private key.
+If the leader instance is unavailable, the proxy will select an available replica to handle the request.
+The proxy will then request the leader instance to generate a re-encryption key from itself to the selected replica.
+Upon receiving the key, the proxy will re-encrypt the request to the selected replica, and forward it to that replica.
+The selected replica can then decrypt the request with its own private key, and process it.
+
+An interesting aspect of proxy re-encryption is that decrypting an encrypted message and decrypting a re-encrypted message require different decryption method.
+This means the decryption performed by the leader is different than the decryption performed by the replica, so
+replicas need to be aware of the whether the message is re-encrypted, to call the correct subroutine.
+
+After the message is decrypted, the replica can process the request and send a response back to the proxy, who forwards it to the sender.
+In \SystemName-Lite, the function code simply turns the string message uppercase, and sends it back unencrypted.
+In the eventual Knative implementation of \SystemName, the replica will encrypt the response back to the sender, or to the next function in the chain, depending on the details of the request.
+
 %As shown in Figure~\ref{fig:arch},
 %the first instance of a function generates a key pair and registers the
 %public key in an untrusted registry with an attestation report from an Oak
 %TEE\@.
 %attestation report that verifies the key was generated in an Oak TEE\@.
 %
-When a new replica is launched, the replica registers its own public key,
-prompting the original instance to generate a re-encryption key.
+%% When a new replica is launched, the replica registers its own public key,
+%% prompting the original instance to generate a re-encryption key.
 %
 %This enables any instance to encrypt messages for the original key pair,
 %allowing independent scaling.
 %
-As a result, each function can encrypt messages for the original downstream
-instance's public key, remaining independent of that function's scaling.
+%% As a result, each function can encrypt messages for the original downstream
+%%% instance's public key, remaining independent of that function's scaling.
 
 
 
 %% \textbf{Compilers project proposal}
 
-In this section we'll overview the design of the \SystemName system.
+%% In this section we'll overview the design of the \SystemName system.
 %%%
 %%First, in section \ref{sec:samba}, I'll describe the proposed \SystemName design.
 %%%
 %%Then, in section \ref{sec:optimization_design} we'll discuss proposed compiler optimization and general optimizations for the \SystemName system. Finally, in section \ref{sec:eval} we'll cover the means by which I'll evaluate the relative success (or failure) of those performance improvements.
 %%%
-\SystemName applies proxy re-encryption to Function as a Service (FaaS) applications.
-%
-We implement it as an extension to Knative Serving\footnote{\url{https://knative.dev/docs/serving/}}, an open-source cloud technology that can function as a FaaS orchestrator.
-%
-Knative Serving is a Kubernetes-based platform that enables developers to deploy and manage serverless applications.
-%
-Using their existing Knative Serving infrastructure, we can add \SystemName's proxy re-encryption capabilities to functions deployed on Knative.
-%
-Knative functions have \texttt{QueueProxy} sidecar containers that can be used to perform instance-level re-encryption operations on the function's behalf.
+%% \SystemName applies proxy re-encryption to Function as a Service (FaaS) applications.
+%% %
+%% We implement it as an extension to Knative Serving\footnote{\url{https://knative.dev/docs/serving/}}, an open-source cloud technology that can function as a FaaS orchestrator.
+%% %
+%% Knative Serving is a Kubernetes-based platform that enables developers to deploy and manage serverless applications.
+%% %
+%% Using their existing Knative Serving infrastructure, we can add \SystemName's proxy re-encryption capabilities to functions deployed on Knative.
+%% %
+%% Knative functions have \texttt{QueueProxy} sidecar containers that can be used to perform instance-level re-encryption operations on the function's behalf.
+%% 
 
 
-
-We implement \SystemName-Lite, a simplified proof-of-concept for the proxy re-encryption scheme applied to FaaS.
-%
-To understand how \SystemName-Lite works, I'll describe a simple example where we have a function with a maximum of two replicas, Alice and Bob.
-For the sake of consistency we'll call the FaaS provider/orchestrator Proxy.
-For simplicity in this explanation, we'll assume not only Proxy, but also Alice and Bob are always running, which defeats the entire purpose of FaaS, but doesn't effect our analysis of the cryptographic operations.
-We assume that Alice's public key will be known by any prospective clients wishing to run the function, since she is the leader replica, so Proxy will advertise her public key as the public key of the function.
-Requests destined for the function are encrypted under Alice's public key, and sent by some Sender to Proxy.
-Proxy then load balances, determining if Alice can currently accept a request.
-If so, Proxy forwards the request to Alice, who can decrypt it with her private key, and send her response to the Proxy, who forwards it to Sender.
-If not, Proxy selects an availible replica, in this case Bob, and requests a re-encryption key from Alice to Bob (if one hasn't already been made).
-Proxy then re-encrypts the request to Bob, forwards the request to Bob.
-Bob decrypts, and responds to Proxy, who forwards that response to Sender.
-The decryption operation for a re-encrypted message is different than a normal RSA decryption, which we'll touch on more in section~\ref{sec:PRE}.
+%% We implement \SystemName-Lite, a simplified proof-of-concept for the proxy re-encryption scheme applied to FaaS.
+%% %
+%% To understand how \SystemName-Lite works, I'll describe a simple example where we have a function with a maximum of two replicas, Alice and Bob.
+%% For the sake of consistency we'll call the FaaS provider/orchestrator Proxy.
+%% For simplicity in this explanation, we'll assume not only Proxy, but also Alice and Bob are always running, which defeats the entire purpose of FaaS, but doesn't effect our analysis of the cryptographic operations.
+%% We assume that Alice's public key will be known by any prospective clients wishing to run the function, since she is the leader replica, so Proxy will advertise her public key as the public key of the function.
+%% Requests destined for the function are encrypted under Alice's public key, and sent by some Sender to Proxy.
+%% Proxy then load balances, determining if Alice can currently accept a request.
+%% If so, Proxy forwards the request to Alice, who can decrypt it with her private key, and send her response to the Proxy, who forwards it to Sender.
+%% If not, Proxy selects an availible replica, in this case Bob, and requests a re-encryption key from Alice to Bob (if one hasn't already been made).
+%% Proxy then re-encrypts the request to Bob, forwards the request to Bob.
+%% Bob decrypts, and responds to Proxy, who forwards that response to Sender.
+%% The decryption operation for a re-encrypted message is different than a normal RSA decryption, which we'll touch on more in section~\ref{sec:PRE}.
 
 %% \subsection{Optimization}
 %% \label{sec:optimization_design}
