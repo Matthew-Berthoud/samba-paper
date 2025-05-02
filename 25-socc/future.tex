@@ -1,7 +1,7 @@
 \section{Future Work}
 \label{sec:future}
 
-While Samba-lite enabled experimentation with the proxy re-encryption protocol,
+While Samba-lite enables experimentation with the proxy re-encryption protocol,
 several key tasks remain: \emph{(1)} extending the function runtime to support
 trusted execution environments, \emph{(2)} enforcing control-flow integrity at
 the network I/O level, and \emph{(3)} integrating the runtime into a mainstream
@@ -13,8 +13,8 @@ full-fledged design and implementation for future work.
 
 \subsection{Running Functions in TEEs}
 
-In \SystemName-lite, the function instances run on conventional, thus allowing
-the cloud provider to access each function's data, including its keys.
+In \SystemName-lite, the function instances run on conventional hardware, thus
+allowing the cloud provider to access each function's data, including its keys.
 %
 To properly address our threat model (which allows for a malicious cloud
 provider and cloud-side adversaries), functions must run in secure hardware
@@ -56,6 +56,8 @@ Additionally, Oak uses the DICE~\cite{24-misc-dice} architecture for measured
 boot to extend AMD SEV-SNP's attestation from the initial state of the VM
 to the entire VM workload.
 %
+%
+% TODO: this is not quite right -- the queue-proxy will do that
 We will modify the Oak kernel with cryptographic support to transparently
 manage keys and encrypt I/O\@.
 
@@ -124,7 +126,7 @@ respective message.
 Knative is a platform-agnostic framework that brings serverless capabilities to
 Kubernetes.
 %
-As illustrated in the Figure~\ref{fig:knative}, the Knative control plane
+As Figure~\ref{fig:knative} illustrates, the Knative control plane
 consists of an HTTP ingress router, an activator, and an autoscaler.
 
 
