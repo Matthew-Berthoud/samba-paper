@@ -1,6 +1,29 @@
 \section{Conclusion}
 \label{sec:conclusion}
 
+% https://queue.acm.org/detail.cfm?id=3623461
+As Mark Russinovich, CTO of Microsoft Azure, famously stated, in the future,
+``confidential computing will just be computing.''
+%
+Realizing this vision requires rethinking today's software systems to make
+confidential computing practical and accessible.
+%
+This thesis takes a first step by bringing confidentiality to a widely used
+model---Function as a Service---while maintaining compatibility with existing
+applications through our system, \SystemName.
+%
+\SystemName demonstrates that trusted hardware alone is not enough to satisfy
+the complex requirements of modern software systems.
+%
+Instead, combining trusted hardware with cryptographic
+techniques---specifically, proxy re-encryption in \SystemName's case---enables
+secure and scalable solutions.
+%
+To support future work, we have made our \SystemName-lite implementation
+publicly available at \url{https://github.com/etclab/samba}, along with our
+proxy re-encryption library at \url{https://github.com/etclab/pre}.
+
+
 
 
 %% \textbf{adwait}
@@ -9,11 +32,4 @@
 % future possibilities, i.e., conclusions that you have arrived at as a
 % result of your work.)
 
-Confidentiality in the cloud is not a priority for everyone.
-For whatever reason, end-users don't always think about their data as being vulnerable when in the hands of a cloud provider.
-This is mainly due to a misplaced trust in cloud providers, due to two possible reasons.
-Potentially, users unconsciously believe that big cloud companies like Amazon, Google, and Microsoft either aren't able to see all of your data, or wouldn't ever do anything malicious with it.
-It's also possible that users don't think of running code or storing data in the cloud as any different from running code or storing data on your computer, due to a lack of technical understanding.
-In either case, it seems clear to us that the public underestimates the security risks of the cloud.
-Therefore, it is important to make advancements in cloud security that push the envelope and grow the ecosystem of options availibile to make the cloud confidential.
-By protecting confidentiality across FaaS replicas, and integrity in FaaS chains, all while \textit{reducing} the TCB, we believe \SystemName moves the field in that direction.
+
