@@ -1,13 +1,26 @@
 \section{Future Work}
 \label{sec:future}
 
-\subsection{Trusted Function Runtime}
-
-For the purposes of the \SystemName libaray and \SystemName-Lite system, we've claimed that the proxy/cloud provider can be untrusted.
-This isn't exactly true in the system as we've presented it, since the instances still rely on the proxy to obtain key material (public parameters) to create their keys, and the keys are in the memory of these instances which are running on the cloud provider's hardware.
-In order to make this threat model assumption hold, the eventual Knative \SystemName extension, will have to run its function instances in Trusted Execution Environments (TEEs) on hardware capable of doing so.
+While Samba-lite enabled experimentation with the proxy re-encryption protocol,
+several key tasks remain: \emph{(1)} extending the function runtime to support
+trusted execution environments, \emph{(2)} enforcing control-flow integrity at
+the network I/O level, and \emph{(3)} integrating the runtime into a mainstream
+FaaS platform.
 %
-For \SystemName's function runtime, we will extend \emph{Project Oak},\footnote{
+We now outline our initial designs for each of these concerns, leaving a
+full-fledged design and implementation for future work.
+
+
+\subsection{Running Functions in TEEs}
+
+In \SystemName-lite, the function instances run on conventional, thus allowing
+the cloud provider to access each function's data, including its keys.
+%
+To properly address our threat model (which allows for a malicious cloud
+provider and cloud-side adversaries), functions must run in secure hardware
+enclaves.
+%
+For future work, we plan to extend \emph{Project Oak},\footnote{
 \url{https://github.com/project-oak/oak}
 %\url{https://nordprojects.co/projects/oak/}
 }
@@ -47,18 +60,19 @@ We will modify the Oak kernel with cryptographic support to transparently
 manage keys and encrypt I/O\@.
 
 
+% TODO: discss how you would register keys as part of an attesation.
+
+% TODO: describe sealing keys for a new leader.
+
+
 \subsection{Control Flow Integrity}
 %
 Beyond encrypting function I/O, \SystemName must ensure the integrity
 of the sequence of functions.
 %
-%Guaranteeing this property is challenging, as a function chain can span multiple
-%organizations, and an organization may be unaware of its functions position in
-%the chain.
-%
 \SystemName approaches this challenge in two ways.
 %
-First, we extend the Oak runtime to include a cryptographically binding record
+First, we will extend the Oak runtime to include a cryptographically binding record
 of provenance: each function extends a path signature by signing over its
 current link.
 %
@@ -70,33 +84,53 @@ some subset thereof),  Oak will locally verify that the received event and the
 function's subsequent output conform to the graph.
 
 
-\subsection{Optimization}
-%
 \SystemName relies on certificate chains both for attestation and provenance.
 %
-To reduce bandwidth and storage costs, \SystemName can compress the chains
-using an aggregate signature
+To reduce bandwidth and storage costs, we will investigate compressing the chains
+with an aggregate signature
 scheme~\cite{03-eurocrypt-aggregate_signatures_bilinear_maps}.
 %
-In an \emph{aggregate signature},
-each private key $sk_i$ signs a \emph{distinct} message $m_i$ to form signature
-$\sigma_i$, and any party can compress the $\sigma_i$ into a single,
-small aggregate signature $\sigma^*$.  
+In an \emph{aggregate signature}, each private key $sk_i$ signs a
+\emph{distinct} message $m_i$ to form signature $\sigma_i$, and any party can
+compress the $\sigma_i$ into a single, small aggregate signature $\sigma^*$.  
 %
 The aggregate signature convinces a verifier that each signer signed their
 respective message.
 
-%% \textbf{adwait "discussion"}
-%% % Discussion (discuss some of the important simplifying assumptions, and
-%% % suggest possibilities for future work)
-%% 
-%% Notably, to get any benefit from SAMBA, users will have to use one of the three open source FaaS orchestrators (whichever we decide on), and run only Oak Restricted Kernel VMs.
-%% It's doubtful that this will become the standard for FaaS workloads, since most in-use FaaS systems, such as AWS Lambda, use proprietary software.
-%% SAMBA's practical in-market use cases are therefore likely next to none, but it serves as a good proof of concept for how to add these security features to FaaS systems.
-%% 
-%% As noted in the threat model, side channel attacks are out of scope for this project.
-%% This assumption simplifies things greatly, since side-channel attacks are definitely feasible in the modern cloud. \cite{zhao_everywhere_2024} \cite{zhao_last-level_2024}
-%% I acknowledge that it's a bit fantastical to assume that the cloud provider could be malicious, but woudlnt' think to perform a side-channel attack on our otherwise largely protected system.
-%% Defenses against side-channel attacks in the cloud are another active research area.
-%% It is unfortunate that strengthening overall security and hardeing against side-channel attacks seem to both leave the other vulnerable.
-%% Uniting solutions for these two issues without significant performance impact is an interesting research area worthy of pursuit.
+
+
+\subsection{Integration with Knative}
+
+\parhead{Knative Overview}
+%
+% https://knative.dev/docs/getting-started/next-steps/
+% https://knative.dev/docs/serving/architecture/
+% https://knative.dev/docs/serving/
+%
+Knative is a platform-agnostic framework that brings serverless capabilities to
+Kubernetes.
+%
+As illustrated in the figure, the Knative control plane consists
+of an HTTP ingress router, an activator, and an autoscaler.
+
+
+Under normal traffic,the ingress router routes requests to the activator, which
+buffers incoming requests and notifies the autoscaler if additional capacity is
+needed; the autoscaler, in turn, requests more pods from Kubernetes.
+%
+Once new pods are ready---or existing ones become available---the activator
+forwards the buffered requests.
+%
+Under high traffic, the ingress router bypasses the activator and routes
+requests directly to the active function pods.
+%
+Regardless of the traffic pattern, all requests pass through the queue-proxy, a
+sidecar container in each function pod.
+%
+The queue-proxy collects metrics, enforces concurrency limits, and can also
+buffer requests when needed, similar to the activator.
+
+
+To support function chaining, Knative provides an event mesh---an abstraction
+of a publish-subscribe system---that enables asynchronous, store-and-forward
+message delivery, decoupling senders and recipients in time.
