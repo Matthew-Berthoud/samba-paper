@@ -22,13 +22,6 @@ The four main functions of the library are
 The plaintext of a pre scheme is an AES key, so a real plaintext message must be encrypted under that key, and sent alongside the AES key which is encrypted with the \texttt{Encrypt} function.
 To support this, we defined a \texttt{KdfGtToAes256} function that converts the \texttt{pre} "plaintext" a useable AES key.
 
-The true plaintext-to-plaintext encryption and decryption functions can be expressed as follows:
-$$E(m) = E_{k^+}(k_{AES},E_{k_{AES}}(m))$$
-$$D = $$
-\color{red}TODO\color{black}
-
-
-
 \subsection{\SystemName Library}
 
 % proxy object

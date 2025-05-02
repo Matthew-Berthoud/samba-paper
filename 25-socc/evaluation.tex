@@ -58,7 +58,7 @@ We believe the security guarantees of \SystemName justify the performance costs.
 Since \SystemName is to be used exclusively in FaaS systems, network request latency, which is usually in the hundreds of milliseconds, will dominate our cryptographic slowdowns.
 Additionally, the method to generate a re-encryption key doesn't have to be called on a per-request basis, but rather only the first time traffic is rerouted from the leader to an instance.
 
-Nevertheless, performance optimizations to our PRE implementation are an interesting area for future work; we intentionally wrote our benchmarks to avoid some of the Go compiler's built-in optimizations.
+%% Nevertheless, performance optimizations to our PRE implementation are an interesting area for future work; we intentionally wrote our benchmarks to avoid some of the Go compiler's built-in optimizations.
 
 %% The encryption performed by the external sender is the least expensive, which is good for responsiveness, since the user's request will be on its way relatively fast.
 %% The generation of a re-encryption key and the use to that key to re-encrypt are more expensive.
