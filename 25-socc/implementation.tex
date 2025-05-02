@@ -20,8 +20,8 @@ The four main functions of the library are
 \end{enumerate}
 
 The plaintext of a proxy re-encryption scheme is a random element from the target group of a bilinear map.
-We defined a \texttt{KdfGtToAes256} function that converts the \texttt{pre} "plaintext" an AES key.
-The true plaintext message must be encrypted under that key, and sent alongside the AES key which is encrypted with the \texttt{Encrypt} function.
+We defined a \texttt{KdfGtToAes256} function that converts the \texttt{pre} "plaintext" to an AES key.
+The true plaintext message must be encrypted under that AES key, and sent alongside group element encrypted by the \texttt{Encrypt} function.
 
 \subsection{\SystemName Library}
 
