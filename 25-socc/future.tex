@@ -101,7 +101,21 @@ respective message.
 
 \subsection{Integration with Knative}
 
-\parhead{Knative overview.}
+\begin{figure}
+    \centering
+    \includegraphics[page = 6, width=0.48\textwidth]{diagrams/slides.pdf}
+    %
+    \caption{Knative architecture.
+    %
+    The Knative components are in light blue.
+    %
+    The solid arrows are the request flow, and the dashed arrows the
+    autoscaling flow.}
+    %
+    \label{fig:knative}
+\end{figure}
+
+\parhead{Knative architecture.}
 %
 % https://knative.dev/docs/getting-started/next-steps/
 % https://knative.dev/docs/serving/architecture/
@@ -110,8 +124,8 @@ respective message.
 Knative is a platform-agnostic framework that brings serverless capabilities to
 Kubernetes.
 %
-As illustrated in the figure, the Knative control plane consists
-of an HTTP ingress router, an activator, and an autoscaler.
+As illustrated in the Figure~\ref{fig:knative}, the Knative control plane
+consists of an HTTP ingress router, an activator, and an autoscaler.
 
 
 Under normal traffic,the ingress router routes requests to the activator, which
