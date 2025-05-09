@@ -1,0 +1,21 @@
+\section{Optimization}
+\label{sec:optimization}
+
+Due to the high cost of proxy re-encryption operations, which we discussed in \S\ref{sec:evaluation}, we performed a number of optimizations to reduce overhead.
+First, we made some minor changes to the samba code, limiting the calls to expensive operations.
+Second, we tested a suite of Go compiler optimizations on the \texttt{pre} library, with the hopes of improving runtime.
+We discuss these two approaches in \S\ref{sec:code-level-optimizations} and \S\ref{sec:compiler-optimizations}, respectively.
+We then re-evaluated performance, the results of which are discussed in \S\ref{sec:optimization-results}.
+
+\subsection{Code-level Optimizations}
+\label{sec:code-level-optimizations}
+
+
+\subsection{Compiler Optimizations}
+\label{sec:compiler-optimizations}
+
+
+\subsection{Results}
+\label{sec:optimization-results}
+
+
